@@ -25,6 +25,7 @@ import array
 import gcode
 import os
 import re
+import hal
 
 def minmax(*args):
     return min(*args), max(*args)
@@ -1554,12 +1555,17 @@ class GlCanonDraw:
                 droformat = " " + format + "  DTG %1s:" + self.dro_mm
                 offsetformat = "% 5s %1s:" + self.dro_mm + "  G92 %1s:" + self.dro_mm
                 rotformat = "% 5s %1s:" + self.dro_mm
+                fprformat = "% 6s:% 9.3f"
             else:
                 format = "% 6s:" + self.dro_in
                 droformat = " " + format + "  DTG %1s:" + self.dro_in
                 offsetformat = "% 5s %1s:" + self.dro_in + "  G92 %1s:" + self.dro_in
                 rotformat = "% 5s %1s:" + self.dro_in
+                fprformat = "% 6s:% 9.4f"
             diaformat = " " + format
+            rpmformat = "% 6s:% 9.0f"
+            angformat = "% 6s:% 9.1f"
+            vctformat = "% 6s:% 9.1f"
 
             posstrs = []
             droposstrs = []
@@ -1599,6 +1605,40 @@ class GlCanonDraw:
             if self.get_show_machine_speed():
                 posstrs.append(format % ("Vel", spd))
                 droposstrs.append(diaformat % ("Vel", spd))
+
+            if (self.get_show_spindle_rpm() or self.get_show_spindle_vct() or self.get_show_spindle_fpr()):
+                spindle_display_speed = hal.get_value("axisui.spindle-speed")
+
+            if self.get_show_spindle_rpm():
+                posstrs.append(rpmformat % ("n", spindle_display_speed))
+
+            if self.get_show_spindle_vct():
+                if self.is_lathe():
+                    cutting_speed = positions[0]*2.0*math.pi*spindle_display_speed
+                else:
+                    cutting_speed = s.tool_table[0].diameter*math.pi*spindle_display_speed
+                if self.get_show_metric():
+                    cutting_speed /= 1000 # SMM
+                else:
+                    cutting_speed /= 12   # SFM
+                posstrs.append(vctformat % ("Vc", cutting_speed))
+
+            if self.get_show_spindle_fpr():
+                if (spindle_display_speed != 0 and ((s.motion_type == linuxcnc.MOTION_TYPE_FEED) or (s.motion_type == linuxcnc.MOTION_TYPE_ARC))):
+                    feed_per_rev = spd/spindle_display_speed
+                else:
+                    feed_per_rev = 0.0
+                if self.is_lathe():
+                    posstrs.append(fprformat % ("Fn", feed_per_rev))
+                else:
+                    if s.tool_table[0].orientation != 0:
+                        feed_per_rev /= s.tool_table[0].orientation
+                    else:
+                        feed_per_rev = 0.0
+                    posstrs.append(fprformat % ("Fz", feed_per_rev))
+
+            if self.get_show_spindle_ang():
+                posstrs.append(angformat % ("a", math.fmod(hal.get_value("axisui.spindle-angle"),1.0)*360.0))
 
             if self.get_show_distance_to_go():
                 posstrs.append(format % ("DTG", dtg))
