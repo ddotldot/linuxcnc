@@ -1384,7 +1384,7 @@ class GlCanonDraw:
                 posstrs.append(format % ("Vel", spd))
 
             if (self.get_show_spindle_rpm() or self.get_show_spindle_vct() or self.get_show_spindle_fpr()):
-                spindle_display_speed = hal.get_value("axisui.spindle-speed")
+                spindle_display_speed = hal.get_value("axisui.display-spindle-speed")
 
             if self.get_show_spindle_rpm():
                 posstrs.append(rpmformat % ("n", spindle_display_speed))
@@ -1415,7 +1415,7 @@ class GlCanonDraw:
                     posstrs.append(fprformat % ("Fz", feed_per_rev))
 
             if self.get_show_spindle_ang():
-                posstrs.append(angformat % ("a", math.fmod(hal.get_value("axisui.spindle-angle"),1.0)*360.0))
+                posstrs.append(angformat % ("a", math.fmod(hal.get_value("axisui.display-spindle-angle"),1.0)*360.0))
 
             if self.get_show_distance_to_go():
                 posstrs.append(format % ("DTG", dtg))

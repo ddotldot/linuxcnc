@@ -750,8 +750,8 @@ class LivePlotter:
         self.win.set_current_line(self.stat.id or self.stat.motion_line)
 
         speed = self.stat.current_vel
-        spindle_rpm = hal.get_value("axisui.spindle-speed")
-        spindle_ang = hal.get_value("axisui.spindle-angle")
+        spindle_rpm = hal.get_value("axisui.display-spindle-speed")
+        spindle_ang = hal.get_value("axisui.display-spindle-angle")
 
         limits = soft_limits()
 
@@ -3287,8 +3287,8 @@ t.bind("<Button-5>", scroll_down)
 t.configure(state="disabled")
 
 comp = hal.component("axisui")
-comp.newpin("spindle-speed", hal.HAL_FLOAT, hal.HAL_IN)
-comp.newpin("spindle-angle", hal.HAL_FLOAT, hal.HAL_IN)
+comp.newpin("display-spindle-speed", hal.HAL_FLOAT, hal.HAL_IN)
+comp.newpin("display-spindle-angle", hal.HAL_FLOAT, hal.HAL_IN)
 
 if hal_present == 1 :
     comp.newpin("jog.x", hal.HAL_BIT, hal.HAL_OUT)
