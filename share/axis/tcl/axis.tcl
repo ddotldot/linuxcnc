@@ -366,6 +366,26 @@ setup_menu_accel .menu.view end [_ "Sh_ow machine limits"]
 setup_menu_accel .menu.view end [_ "Show v_elocity"]
 
 .menu.view add checkbutton \
+	-variable show_spindle_rpm \
+	-command toggle_show_spindle_rpm
+setup_menu_accel .menu.view end [_ "Show spindle speed"]
+
+.menu.view add checkbutton \
+	-variable show_spindle_vct \
+	-command toggle_show_spindle_vct
+setup_menu_accel .menu.view end [_ "Show cutting speed"]
+
+.menu.view add checkbutton \
+	-variable show_spindle_fpr \
+	-command toggle_show_spindle_fpr
+setup_menu_accel .menu.view end [_ "Show feed per tooth | feed per rev"]
+
+.menu.view add checkbutton \
+	-variable show_spindle_ang \
+	-command toggle_show_spindle_ang
+setup_menu_accel .menu.view end [_ "Show spindle angle"]
+
+.menu.view add checkbutton \
 	-variable show_distance_to_go \
 	-command toggle_show_distance_to_go
 setup_menu_accel .menu.view end [_ "Show _distance to go"]

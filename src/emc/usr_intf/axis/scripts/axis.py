@@ -20,6 +20,7 @@
 
 # import pdb
 import sys, os
+import hal
 import string
 from OpenGL.GL import *
 from OpenGL.GLU import *
@@ -573,6 +574,10 @@ class MyOpengl(GlCanonDraw, Opengl):
     def get_show_live_plot(self): return vars.show_live_plot.get()
     def get_show_machine_speed(self): return vars.show_machine_speed.get()
     def get_show_distance_to_go(self): return vars.show_distance_to_go.get()
+    def get_show_spindle_rpm(self): return vars.show_spindle_rpm.get()
+    def get_show_spindle_ang(self): return vars.show_spindle_ang.get()
+    def get_show_spindle_vct(self): return vars.show_spindle_vct.get()
+    def get_show_spindle_fpr(self): return vars.show_spindle_fpr.get()
 
     def get_view(self):
         x,y,z,p = 0,1,2,3
@@ -705,6 +710,8 @@ class LivePlotter:
         self.running.set(False)
         self.lastpts = -1
         self.last_speed = -1
+        self.last_spindle_rpm = -1
+        self.last_spindle_ang = -1
         self.last_limit = None
         self.last_motion_mode = None
         self.last_joint_position = None
@@ -807,6 +814,8 @@ class LivePlotter:
         self.win.set_current_line(self.stat.id or self.stat.motion_line)
 
         speed = self.stat.current_vel
+        spindle_rpm = hal.get_value("axisui.display-spindle-speed")
+        spindle_ang = hal.get_value("axisui.display-spindle-angle")
 
         limits = soft_limits()
 
@@ -826,7 +835,9 @@ class LivePlotter:
                 or self.stat.tool_offset != o.last_tool_offset
                 or self.stat.tool_in_spindle != o.last_tool
                 or self.stat.motion_mode != self.last_motion_mode
-                or abs(speed - self.last_speed) > .01):
+                or abs(speed - self.last_speed) > .01
+                or abs(spindle_rpm - self.last_spindle_rpm) > 1.0
+                or abs(spindle_ang - self.last_spindle_ang) > 0.00027):
             o.redraw_soon()
             o.last_limits = limits
             o.last_limit = self.stat.limit
@@ -841,6 +852,8 @@ class LivePlotter:
             o.last_tool_offset = self.stat.tool_offset
             o.last_joint_position = self.stat.joint_actual_position
             self.last_speed = speed
+            self.last_spindle_rpm = spindle_rpm
+            self.last_spindle_ang = spindle_ang
             self.lastpts = self.logger.npts
 
         root_window.update_idletasks()
@@ -904,13 +917,16 @@ class LivePlotter:
         global current_tool
         current_tool = self.stat.tool_table[0]
         if current_tool:
-            tool_data = {'tool': current_tool[0], 'zo': current_tool[3], 'xo': current_tool[1], 'dia': current_tool[10]}
+            tool_data = {'tool': current_tool[0], 'zo': current_tool[3], 'xo': current_tool[1], 'dia': current_tool[10], 'tz': current_tool[13]}
         if current_tool is None:
             vupdate(vars.tool, _("Unknown tool %d") % self.stat.tool_in_spindle)
         elif tool_data['tool'] == 0 or tool_data['tool'] == -1:
             vupdate(vars.tool, _("No tool"))
         elif current_tool.xoffset == 0 and not lathe:
-            vupdate(vars.tool, _("Tool %(tool)d, offset %(zo)g, diameter %(dia)g") % tool_data)
+            if current_tool.orientation != 0:
+                vupdate(vars.tool, _("Tool %(tool)d, offset %(zo)g, diameter %(dia)g, flutes %(tz)d") % tool_data)
+            else:
+                vupdate(vars.tool, _("Tool %(tool)d, offset %(zo)g, diameter %(dia)g") % tool_data)
         else:
             vupdate(vars.tool, _("Tool %(tool)d, zo %(zo)g, xo %(xo)g, dia %(dia)g") % tool_data)
         active_codes = []
@@ -2608,6 +2624,22 @@ class TclCommands(nf.TclCommands):
         ap.putpref("show_distance_to_go", vars.show_distance_to_go.get())
         o.tkRedraw()
 
+    def toggle_show_spindle_rpm(*event):
+        ap.putpref("show_spindle_rpm", vars.show_spindle_rpm.get())
+        o.tkRedraw()
+
+    def toggle_show_spindle_ang(*event):
+        ap.putpref("show_spindle_ang", vars.show_spindle_ang.get())
+        o.tkRedraw()
+
+    def toggle_show_spindle_vct(*event):
+        ap.putpref("show_spindle_vct", vars.show_spindle_vct.get())
+        o.tkRedraw()
+
+    def toggle_show_spindle_fpr(*event):
+        ap.putpref("show_spindle_fpr", vars.show_spindle_fpr.get())
+        o.tkRedraw()
+
     def toggle_dro_large_font(*event):
         ap.putpref("dro_large_font", vars.dro_large_font.get())
         get_coordinate_font(vars.dro_large_font.get())
@@ -2979,6 +3011,10 @@ vars = nf.Variables(root_window,
     ("show_machine_limits", BooleanVar),
     ("show_machine_speed", BooleanVar),
     ("show_distance_to_go", BooleanVar),
+    ("show_spindle_rpm", BooleanVar),
+    ("show_spindle_ang", BooleanVar),
+    ("show_spindle_vct", BooleanVar),
+    ("show_spindle_fpr", BooleanVar),
     ("dro_large_font", BooleanVar),
     ("show_pyvcppanel", BooleanVar),
     ("show_rapids", BooleanVar),
@@ -3026,6 +3062,10 @@ vars.grid_size.set(ap.getpref("grid_size", str(0.0), type=float))
 vars.show_machine_limits.set(ap.getpref("show_machine_limits", "True"))
 vars.show_machine_speed.set(ap.getpref("show_machine_speed", "True"))
 vars.show_distance_to_go.set(ap.getpref("show_distance_to_go", "False"))
+vars.show_spindle_rpm.set(ap.getpref("show_spindle_rpm", False))
+vars.show_spindle_ang.set(ap.getpref("show_spindle_ang", False))
+vars.show_spindle_vct.set(ap.getpref("show_spindle_vct", False))
+vars.show_spindle_fpr.set(ap.getpref("show_spindle_fpr", False))
 vars.dro_large_font.set(ap.getpref("dro_large_font", "False"))
 vars.show_pyvcppanel.set("True")
 vars.block_delete.set(ap.getpref("block_delete", "True"))
@@ -3856,8 +3896,11 @@ t.bind("<Button-4>", scroll_up)
 t.bind("<Button-5>", scroll_down)
 t.configure(state="disabled")
 
+comp = hal.component("axisui")
+comp.newpin("display-spindle-speed", hal.HAL_FLOAT, hal.HAL_IN)
+comp.newpin("display-spindle-angle", hal.HAL_FLOAT, hal.HAL_IN)
+
 if hal_present == 1 :
-    comp = hal.component("axisui")
     comp.newpin("jog.x", hal.HAL_BIT, hal.HAL_OUT)
     comp.newpin("jog.y", hal.HAL_BIT, hal.HAL_OUT)
     comp.newpin("jog.z", hal.HAL_BIT, hal.HAL_OUT)
