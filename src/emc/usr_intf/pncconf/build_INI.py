@@ -195,6 +195,9 @@ class INI:
         print("[HAL]", file=file)
         print("HALUI = halui", file=file)
         print("HALFILE = %s.hal" % self.d.machinename, file=file)
+        # qtplasmac requires the qtplasmac_comp file to connect the plasmac component
+        if self.d.frontend == _PD._QTPLASMAC:
+            print("HALFILE = qtplasmac_comp.hal", file=file)
         print("HALFILE = custom.hal", file=file)
 
         if self.d.pyvcp and self.d.pyvcphaltype == 1 and self.d.pyvcpconnect:
@@ -269,7 +272,7 @@ class INI:
         # trivial kinematics: no. of joints == no.of axes)
         # with trivkins, axes do not have to be consecutive
         print("JOINTS = %d"%num_joints, file=file)
-        if tandemflag:
+        if tandemflag and self.d.frontend != _PD._QTPLASMAC:
             print("KINEMATICS = trivkins coordinates=%s kinstype=BOTH"%coords.replace(" ",""), file=file)
         else:
             print("KINEMATICS = trivkins coordinates=%s"%coords.replace(" ",""), file=file)
@@ -555,6 +558,15 @@ class INI:
         print("MODE = {}".format(self.d.qtplasmacmode), file=file)
         print(_("# set the estop type (0=indicator, 1=hidden, 2=button)"), file=file)
         print("ESTOP_TYPE = {}".format(self.d.qtplasmacestop), file=file)
+        print(_("# set the dro position ('top' or 'bottom')"), file=file)
+        dro = 'top' if self.d.qtplasmacdro else 'bottom'
+        print("DRO_POSITION = {}".format(dro), file=file)
+        print(_("# error message flash (0=no, 1=yes)"), file=file)
+        print("FLASH_ERROR = {}".format(self.d.qtplasmacerror), file=file)
+        print(_("# hide buttons (0=no, 1=yes)"), file=file)
+        print("HIDE_RUN = {}".format(self.d.qtplasmacstart), file=file)
+        print("HIDE_PAUSE = {}".format(self.d.qtplasmacpause), file=file)
+        print("HIDE_ABORT = {}".format(self.d.qtplasmacstop), file=file)
         print(_("# laser touchoff"), file=file)
         print("#LASER_TOUCHOFF = X0.0 Y0.0", file=file)
         print(_("# camera touchoff"), file=file)

@@ -57,17 +57,6 @@ to another.
 
 */
 
-/* the following line can be used to control where some of the
-   "internal" motion controller data is stored.  By default,
-   it is stored in staticlly allocated kernel memory.  However,
-   if STRUCTS_IN_SHMEM is defined, it will be stored in the
-   emcmotStruct shared memory area, for debugging purposes.
-*/
-
-#define STRUCTS_IN_SHMEM
-
-
-
 #ifndef MOTION_H
 #define MOTION_H
 
@@ -81,10 +70,11 @@ to another.
 #include <stdarg.h>
 #include "rtapi_bool.h"
 #include "state_tag.h"
+#include "tp_types.h"
 
-// define a special value to denote an invalid motion ID 
+// define a special value to denote an invalid motion ID
 // NB: do not ever generate a motion id of  MOTION_INVALID_ID
-// this should be really be tested for in command.c 
+// this should be really be tested for in command.c
 
 #define MOTION_INVALID_ID INT_MIN
 #define MOTION_ID_VALID(x) ((x) != MOTION_INVALID_ID)
@@ -133,7 +123,7 @@ extern "C" {
 	EMCMOT_CLEAR_PROBE_FLAGS,	/* clears probeTripped flag */
 	EMCMOT_PROBE,		/* go to pos, stop if probe trips, record
 				   trip pos */
-	EMCMOT_RIGID_TAP,	/* go to pos, with sync to spindle speed, 
+	EMCMOT_RIGID_TAP,	/* go to pos, with sync to spindle speed,
 				   then return to initial pos */
 
 	EMCMOT_SET_VEL,		/* set the velocity for subsequent moves */
@@ -324,7 +314,7 @@ extern "C" {
   ----------v-----------------v--------------------v-------------------v
   | AF | FE | AH | HD | H | HS | NHL | PHL | - | - | ER | IP | AC | EN |
   ----------^-----------------^--------------------^-------------------^
-               
+
 
   x = unused
 
@@ -401,7 +391,7 @@ Suggestion: Split this in to an Error and a Status flag register..
 	float rev_trim;		/* correction for reverse movement */
 	float fwd_slope;	/* slopes between here and next pt */
 	float rev_slope;
-    } emcmot_comp_entry_t; 
+    } emcmot_comp_entry_t;
 
 
 #define EMCMOT_COMP_SIZE 256
@@ -559,7 +549,7 @@ Suggestion: Split this in to an Error and a Status flag register..
 	int home_sequence;
 	double increment;
     } spindle_status_t;
-    
+
     typedef struct {
 	double pos_cmd;		/* commanded axis position */
 	double teleop_vel_cmd;		/* comanded axis velocity */
@@ -604,6 +594,8 @@ Suggestion: Split this in to an Error and a Status flag register..
 */
 
     typedef struct emcmot_status_t {
+	emcmot_joint_t joints[EMCMOT_MAX_JOINTS];	/* joint data */
+	emcmot_axis_t  axes[EMCMOT_MAX_AXIS];	    /* axis data */
 	unsigned char head;	/* flag count for mutex detect */
 	/* these three are updated only when a new command is handled */
 	cmd_code_t commandEcho;	/* echo of input command */
@@ -644,10 +636,10 @@ Suggestion: Split this in to an Error and a Status flag register..
 				   after last probeTripped */
 
 	
-	int synch_di[EMCMOT_MAX_DIO]; /* inputs to the motion controller, queried by g-code */
-	int synch_do[EMCMOT_MAX_DIO]; /* outputs to the motion controller, queried by g-code */
-	double analog_input[EMCMOT_MAX_AIO]; /* inputs to the motion controller, queried by g-code */
-	double analog_output[EMCMOT_MAX_AIO]; /* outputs to the motion controller, queried by g-code */
+	int synch_di[EMCMOT_MAX_DIO]; /* inputs to the motion controller, queried by G-code */
+	int synch_do[EMCMOT_MAX_DIO]; /* outputs to the motion controller, queried by G-code */
+	double analog_input[EMCMOT_MAX_AIO]; /* inputs to the motion controller, queried by G-code */
+	double analog_output[EMCMOT_MAX_AIO]; /* outputs to the motion controller, queried by G-code */
 	int misc_error[EMCMOT_MAX_MISC_ERROR]; /* Random Error pins*/
 	struct state_tag_t tag; /* Current interp state corresponding
 				   to motion line */
@@ -685,6 +677,7 @@ Suggestion: Split this in to an Error and a Status flag register..
 	int external_offsets_applied;
 	EmcPose eoffset_pose;
 	int numExtraJoints;
+    int stepping;
     } emcmot_status_t;
 
 /*********************************
@@ -725,10 +718,10 @@ Suggestion: Split this in to an Error and a Status flag register..
 
 	KINEMATICS_TYPE kinType;
 
-        int numDIO;             /* userdefined number of digital IO. default is 4. (EMCMOT_MAX_DIO=64), 
+        int numDIO;             /* userdefined number of digital IO. default is 4. (EMCMOT_MAX_DIO=64),
                                    but can be altered at motmod insmod time */
 
-        int numAIO;             /* userdefined number of analog IO. default is 4. (EMCMOT_MAX_AIO=16), 
+        int numAIO;             /* userdefined number of analog IO. default is 4. (EMCMOT_MAX_AIO=16),
                                    but can be altered at motmod insmod time */
 
         int numMiscError;     /* userdefined number of Misc Errors. default is 0.
@@ -758,26 +751,6 @@ Suggestion: Split this in to an Error and a Status flag register..
         int inhibit_probe_home_error;
     } emcmot_config_t;
 
-/*********************************
-      INTERNAL STRUCTURE
-*********************************/
-
-/* This is the internal structure.  It contains stuff that is used
-   internally by the motion controller that does not need to be in
-   shared memory.  It will wind up with a lot of the stuff that got
-   tossed into the debug structure.
-
-   FIXME - so far most if the stuff that was tossed in here got
-   moved back out, maybe don't need it after all?
-*/
-
-    typedef struct emcmot_internal_t {
-	unsigned char head;	/* flag count for mutex detect */
-
-	int probe_debounce_cntr;
-	unsigned char tail;	/* flag count for mutex detect */
-    } emcmot_internal_t;
-
 /* error structure - A ring buffer used to pass formatted printf strings to usr space */
     typedef struct emcmot_error_t {
 	unsigned char head;	/* flag count for mutex detect */
@@ -787,6 +760,20 @@ Suggestion: Split this in to an Error and a Status flag register..
 	int num;		/* number of items */
 	unsigned char tail;	/* flag count for mutex detect */
     } emcmot_error_t;
+
+
+typedef struct emcmot_internal_t {
+    unsigned char head; /* flag count for mutex detect */
+    unsigned char tail; /* flag count for mutex detect */
+    int split;          /* number of split command reads */
+    int enabling;       /* starts up disabled */
+    int coordinating;   /* starts up in free mode */
+    int teleoperating;  /* starts up in free mode */
+    int overriding;     /* non-zero means we've initiated an joint
+                           move while overriding limits */
+    TP_STRUCT coord_tp; /* coordinated mode planner */
+    int idForStep;      /* status id while stepping */
+    } emcmot_internal_t;
 
 /*
   function prototypes for emcmot code
@@ -799,7 +786,23 @@ Suggestion: Split this in to an Error and a Status flag register..
     extern int emcmotErrorPutf(emcmot_error_t * errlog, const char *fmt, ...);
     extern int emcmotErrorGet(emcmot_error_t * errlog, char *error);
 
+    extern void emcmotDioWrite(int index, char value);
+    extern void emcmotAioWrite(int index, double value);
+
+    extern void emcmotSetRotaryUnlock(int axis, int unlock);
+    extern int emcmotGetRotaryIsUnlocked(int axis);
+
+#define ALL_JOINTS emcmotConfig->numJoints
+// number of kinematics-only joints:
+#define NO_OF_KINS_JOINTS (ALL_JOINTS - emcmotConfig->numExtraJoints)
+#define IS_EXTRA_JOINT(jno) (jno >= NO_OF_KINS_JOINTS)
+// 0-based Joint numbering:
+// kinematic-only jno.s: [0                 ... (NO_OF_KINS_JOINTS -1) ]
+// extrajoint     jno.s: [NO_OF_KINS_JOINTS ... (ALL_JOINTS  -1) ]
+
+#define GET_JOINT_ACTIVE_FLAG(joint) ((joint)->flag & EMCMOT_JOINT_ACTIVE_BIT ? 1 : 0)
+
 #ifdef __cplusplus
 }
 #endif
-#endif	/* MOTION_H */
+#endif    /* MOTION_H */

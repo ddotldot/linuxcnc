@@ -151,6 +151,8 @@ typedef struct {
     hal_bit_t *feed_hold;	/* RPI: set TRUE to stop motion maskable with g53 P1*/
     hal_bit_t *feed_inhibit;	/* RPI: set TRUE to stop motion (non maskable)*/
     hal_bit_t *homing_inhibit;	/* RPI: set TRUE to inhibit homing*/
+    hal_bit_t *jog_inhibit;	/* RPI: set TRUE to inhibit jogging*/
+    hal_bit_t *jog_is_active;	/* RPI: TRUE if active jogging*/
     hal_bit_t *tp_reverse;	/* Set true if trajectory planner is running in reverse*/
     hal_bit_t *motion_enabled;	/* RPI: motion enable for all joints */
     hal_bit_t *in_position;	/* RPI: all joints are in position */
@@ -210,7 +212,11 @@ typedef struct {
     hal_bit_t   *eoffset_active; /* ext offsets active */
     hal_bit_t   *eoffset_limited; /* ext offsets exceed limit */
 
-    hal_float_t *feed_upm; /* feed units per minute*/
+    hal_float_t *feed_upm; /* feed gcode units per minute*/
+    hal_float_t *feed_inches_per_minute; /* feed inches per minute*/
+    hal_float_t *feed_inches_per_second; /* feed inches per second*/
+    hal_float_t *feed_mm_per_minute; /* feed mm per minute*/
+    hal_float_t *feed_mm_per_second; /* feed mm per second*/
 
     hal_float_t *switchkins_type;
 } emcmot_hal_data_t;
@@ -234,28 +240,14 @@ extern emcmot_axis_t *axes;
 extern KINEMATICS_FORWARD_FLAGS fflags;
 extern KINEMATICS_INVERSE_FLAGS iflags;
 /* these variable have the 1/servo cycle time */
-extern double servo_freq;
 
 /* Struct pointers */
 extern struct emcmot_struct_t *emcmotStruct;
 extern struct emcmot_command_t *emcmotCommand;
 extern struct emcmot_status_t *emcmotStatus;
 extern struct emcmot_config_t *emcmotConfig;
-extern struct emcmot_debug_t *emcmotDebug;
+extern struct emcmot_internal_t *emcmotInternal;
 extern struct emcmot_error_t *emcmotError;
-
-
-// total number of joints (typically set with [KINS]JOINTS)
-#define ALL_JOINTS emcmotConfig->numJoints
-
-// number of kinematics-only joints:
-#define NO_OF_KINS_JOINTS (ALL_JOINTS - emcmotConfig->numExtraJoints)
-
-#define IS_EXTRA_JOINT(jno) (jno >= NO_OF_KINS_JOINTS)
-
-// 0-based Joint numbering:
-// kinematic-only jno.s: [0                 ... (NO_OF_KINS_JOINTS -1) ]
-// extrajoint     jno.s: [NO_OF_KINS_JOINTS ... (ALL_JOINTS  -1) ]
 
 /***********************************************************************
 *                    PUBLIC FUNCTION PROTOTYPES                        *
@@ -283,8 +275,6 @@ extern int emcmotGetRotaryIsUnlocked(int axis);
 //
 void switch_to_teleop_mode(void);
 
-/* loops through the active joints and checks if any are not homed */
-extern bool checkAllHomed(void);
 /* recalculates jog limits */
 extern void refresh_jog_limits(emcmot_joint_t *joint,int joint_num);
 /* handles 'homed' flags, see command.c for details */
