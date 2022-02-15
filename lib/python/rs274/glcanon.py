@@ -1659,6 +1659,7 @@ class GlCanonDraw:
                         feed_per_rev = 0.0
                     if self.is_lathe():
                         posstrs.append(fprformat % ("Fn", feed_per_rev))
+                        droposstrs.append(drofprformat % ("Fn", feed_per_rev))
                     else:
                         if s.tool_table[0].orientation != 0:
                             feed_per_rev /= s.tool_table[0].orientation
