@@ -3286,11 +3286,8 @@ t.bind("<Button-4>", scroll_up)
 t.bind("<Button-5>", scroll_down)
 t.configure(state="disabled")
 
-comp = hal.component("axisui")
-comp.newpin("display-spindle-speed", hal.HAL_FLOAT, hal.HAL_IN)
-comp.newpin("display-spindle-angle", hal.HAL_FLOAT, hal.HAL_IN)
-
 if hal_present == 1 :
+    comp = hal.component("axisui")
     comp.newpin("jog.x", hal.HAL_BIT, hal.HAL_OUT)
     comp.newpin("jog.y", hal.HAL_BIT, hal.HAL_OUT)
     comp.newpin("jog.z", hal.HAL_BIT, hal.HAL_OUT)
@@ -3305,6 +3302,8 @@ if hal_present == 1 :
     comp.newpin("notifications-clear-info",hal.HAL_BIT,hal.HAL_IN)
     comp.newpin("notifications-clear-error",hal.HAL_BIT,hal.HAL_IN)
     comp.newpin("resume-inhibit",hal.HAL_BIT,hal.HAL_IN)
+    comp.newpin("display-spindle-speed", hal.HAL_FLOAT, hal.HAL_IN)
+    comp.newpin("display-spindle-angle", hal.HAL_FLOAT, hal.HAL_IN)
 
     vars.has_ladder.set(hal.component_exists('classicladder_rt'))
 
