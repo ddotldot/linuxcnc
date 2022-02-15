@@ -1564,8 +1564,12 @@ class GlCanonDraw:
                 fprformat = "% 6s:% 9.4f"
             diaformat = " " + format
             rpmformat = "% 6s:% 9.0f"
-            angformat = "% 6s:% 9.1f"
             vctformat = "% 6s:% 9.1f"
+            angformat = "% 6s:% 9.1f"
+            drorpmformat = " " + rpmformat
+            drovctformat = " " + vctformat
+            drofprformat = " " + fprformat
+            droangformat = " " + angformat
 
             posstrs = []
             droposstrs = []
@@ -1606,39 +1610,46 @@ class GlCanonDraw:
                 posstrs.append(format % ("Vel", spd))
                 droposstrs.append(diaformat % ("Vel", spd))
 
-            if (self.get_show_spindle_rpm() or self.get_show_spindle_vct() or self.get_show_spindle_fpr()):
-                spindle_display_speed = hal.get_value("axisui.display-spindle-speed")
+            if (hasattr(self, "get_show_spindle_rpm") and hasattr(self, "get_show_spindle_vct") and hasattr(self, "get_show_spindle_fpr") and hasattr(self, "get_show_spindle_ang")): # for prevent run undefined func
+                if (self.get_show_spindle_rpm() or self.get_show_spindle_vct() or self.get_show_spindle_fpr()):
+                    spindle_display_speed = hal.get_value("axisui.display-spindle-speed")
 
-            if self.get_show_spindle_rpm():
-                posstrs.append(rpmformat % ("n", spindle_display_speed))
+                if self.get_show_spindle_rpm():
+                    posstrs.append(rpmformat % ("n", spindle_display_speed))
+                    droposstrs.append(drorpmformat % ("n", spindle_display_speed))
 
-            if self.get_show_spindle_vct():
-                if self.is_lathe():
-                    cutting_speed = positions[0]*2.0*math.pi*spindle_display_speed
-                else:
-                    cutting_speed = s.tool_table[0].diameter*math.pi*spindle_display_speed
-                if self.get_show_metric():
-                    cutting_speed /= 1000 # SMM
-                else:
-                    cutting_speed /= 12   # SFM
-                posstrs.append(vctformat % ("Vc", cutting_speed))
+                if self.get_show_spindle_vct():
+                    if self.is_lathe():
+                        cutting_speed = positions[0]*2.0*math.pi*spindle_display_speed
+                    else:
+                        cutting_speed = s.tool_table[0].diameter*math.pi*spindle_display_speed
+                    if self.get_show_metric():
+                        cutting_speed /= 1000 # SMM
+                    else:
+                        cutting_speed /= 12   # SFM
+                    posstrs.append(vctformat % ("Vc", cutting_speed))
+                    droposstrs.append(drovctformat % ("Vc", cutting_speed))
 
-            if self.get_show_spindle_fpr():
-                if (spindle_display_speed != 0 and ((s.motion_type == linuxcnc.MOTION_TYPE_FEED) or (s.motion_type == linuxcnc.MOTION_TYPE_ARC))):
-                    feed_per_rev = spd/spindle_display_speed
-                else:
-                    feed_per_rev = 0.0
-                if self.is_lathe():
-                    posstrs.append(fprformat % ("Fn", feed_per_rev))
-                else:
-                    if s.tool_table[0].orientation != 0:
-                        feed_per_rev /= s.tool_table[0].orientation
+                if self.get_show_spindle_fpr():
+                    if (spindle_display_speed != 0 and ((s.motion_type == linuxcnc.MOTION_TYPE_FEED) or (s.motion_type == linuxcnc.MOTION_TYPE_ARC))):
+                        feed_per_rev = spd/spindle_display_speed
                     else:
                         feed_per_rev = 0.0
-                    posstrs.append(fprformat % ("Fz", feed_per_rev))
+                    if self.is_lathe():
+                        posstrs.append(fprformat % ("Fn", feed_per_rev))
+                        droposstrs.append(drofprformat % ("Fn", feed_per_rev))
+                    else:
+                        if s.tool_table[0].orientation != 0:
+                            feed_per_rev /= s.tool_table[0].orientation
+                        else:
+                            feed_per_rev = 0.0
+                        posstrs.append(fprformat % ("Fz", feed_per_rev))
+                        droposstrs.append(drofprformat % ("Fz", feed_per_rev))
 
-            if self.get_show_spindle_ang():
-                posstrs.append(angformat % ("a", math.fmod(hal.get_value("axisui.display-spindle-angle"),1.0)*360.0))
+                if self.get_show_spindle_ang():
+                    spindle_display_angle = math.fmod(hal.get_value("axisui.display-spindle-angle"),1.0)*360.0
+                    posstrs.append(angformat % ("a", spindle_display_angle))
+                    droposstrs.append(droangformat % ("a", spindle_display_angle))
 
             if self.get_show_distance_to_go():
                 posstrs.append(format % ("DTG", dtg))
