@@ -1,13 +1,13 @@
+:lang: en
 :lversion: {sys: cat ../VERSION}
 :date: {sys: LANG=C date --date="@$(dpkg-parsechangelog --file ../debian/changelog -S timestamp)" '+%d %b %Y'}
+:ascii-ids:
+:masterdir: {indir}
+:revdate: 2021-10-28
 LinuxCNC V{lversion}, {date}
 ============================
-:lang: en
-:revdate: 2021-10-28
 
 = Contents
-
-:masterdir: {indir}
 
 :leveloffset: 0
 
@@ -165,6 +165,24 @@ include::gui/pyvcp-examples.adoc[]
 
 include::gui/gladevcp.adoc[]
 
+include::gui/qtvcp.adoc[]
+
+:leveloffset: 3
+
+include::gui/qtvcp-vcp-panels.adoc[]
+
+include::gui/qtvcp-widgets.adoc[]
+
+include::gui/qtvcp-libraries.adoc[]
+
+include::gui/qtvcp-vismach.adoc[]
+
+include::gui/qtvcp-custom-widgets.adoc[]
+
+include::gui/qtvcp-code-snippets.adoc[]
+
+include::gui/qtvcp-development.adoc[]
+
 :leveloffset: 1
 
 = User Interfaces
@@ -177,9 +195,11 @@ include::gui/halui.adoc[]
 
 include::hal/halui-examples.adoc[]
 
+include::gui/vismach.adoc[]
+
 include::config/python-interface.adoc[]
 
-include::gui/vismach.adoc[]
+include::gui/gstat.adoc[]
 
 :leveloffset: 1
 
@@ -307,5 +327,3 @@ include::common/gpld-copyright.adoc[]
 // = Index
 
 // vim: set syntax=asciidoc:
-
-

@@ -44,12 +44,22 @@ for num,temp in enumerate(sys.argv):
         if temp == '-h' or temp == '--help' or len(sys.argv) == 1:
             _print_help()
 
+# Set up the base logger
+#   We have do do this before importing other modules because on import
+#   they set up their own loggers as children of the base logger.
+from qtvcp import logger
+LOG = logger.initBaseLogger('GScreen', log_file=None, log_level=logger.INFO)
+
 import gi
 gi.require_version("Gtk","3.0")
 gi.require_version("Gdk","3.0")
 gi.require_version('PangoCairo', '1.0')
-from gi.repository import Gtk,Gdk,GObject,Pango,PangoCairo,cairo, Vte,GLib
+from gi.repository import Gtk,Gdk,GObject,Pango,PangoCairo,cairo,GLib
 from gi.repository import Pango as pango
+try:
+    from gi.repository import Vte as vte
+except:
+    LOG.error("**** WARNING GSCREEN: could not import vte terminal - is package installed?")
 
 import hal
 import errno
@@ -58,10 +68,7 @@ from gladevcp.gladebuilder import GladeBuilder
 #import pango
 import traceback
 import atexit
-try:
-    import vte
-except:
-    print (_("**** WARNING GSCREEN: could not import vte terminal - is package installed?"))
+
 import time
 from time import strftime,localtime
 import hal_glib
@@ -359,6 +366,7 @@ class Data:
         self.entry_dialog = None
         self.restart_dialog = None
         self.key_event_last = None,0
+
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -921,6 +929,8 @@ class Gscreen:
         """
         self.widgets.window1.connect('key_press_event', self.on_key_event,1)
         self.widgets.window1.connect('key_release_event', self.on_key_event,0)
+        self.widgets.window1.connect('focus-out-event', self.on_focus_out)
+
 
     def initialize_preferences(self):
         """Convenience function, calls separate functions\n
@@ -4136,6 +4146,14 @@ class Gscreen:
                         jogincr = self.data.jog_increments[self.data.current_jogincr_index]
                         distance = self.parse_increment(jogincr)
                         self.emc.incremental_jog(axis,cmd,distance)
+
+    def on_focus_out(self, widget, data=None):
+        self.emcstat.poll()
+        command = linuxcnc.command()
+        if self.emcstat.enabled and self.emcstat.task_mode == linuxcnc.MODE_MANUAL and self.emcstat.current_vel > 0:
+            # cancel any joints jogging
+            for jnum in range(self.emcstat.joints):
+                command.jog(linuxcnc.JOG_STOP, 0, jnum)
 
     # spindle control
     def spindle_adjustment(self,direction,action):

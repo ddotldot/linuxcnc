@@ -122,6 +122,14 @@ else
 endif
 endif
 
+VERSION=$(shell cat ../VERSION)
+dist:
+	mkdir ../linuxcnc-$(VERSION)
+	(cd ../ && git archive master) | (cd ../linuxcnc-$(VERSION) && tar xf -)
+	(cd ../linuxcnc-$(VERSION) && ./debian/configure)
+	(cd ../linuxcnc-$(VERSION)/src && ./autogen.sh)
+	(cd .. && tar zcf linuxcnc-$(VERSION).tar.gz linuxcnc-$(VERSION))
+	rm -rf ../linuxcnc-$(VERSION)
 
 # Print 'entering' all the time
 MAKEFLAGS += w
@@ -150,9 +158,9 @@ SUBDIRS := \
     \
     emc/usr_intf/axis emc/usr_intf/touchy emc/usr_intf/stepconf emc/usr_intf/pncconf \
     emc/usr_intf/gremlin emc/usr_intf/gscreen emc/usr_intf/pyui emc/usr_intf/qtvcp \
-    emc/usr_intf/gmoccapy emc/usr_intf/qtplasmac\
+    emc/usr_intf/gmoccapy emc/usr_intf/qtplasmac emc/usr_intf/mdro\
     emc/usr_intf emc/nml_intf emc/task emc/iotask emc/kinematics emc/tp emc/canterp \
-    emc/motion emc/ini emc/rs274ngc emc/sai emc emc/pythonplugin \
+    emc/motion emc/ini emc/rs274ngc emc/sai emc/pythonplugin \
     emc/motion-logger \
     emc/tooldata \
     emc \
@@ -164,8 +172,6 @@ SUBDIRS := \
     ../docs/src ../docs/src/source-highlight \
     \
     ../tests \
-	\
-	../share/qtvcp/screens/qtplasmac \
 
 
 
@@ -296,6 +302,7 @@ INFILES = \
 	../share/menus/CNC.menu \
 	../share/applications/linuxcnc.desktop \
 	../share/applications/linuxcnc-latency.desktop \
+	../share/applications/linuxcnc-latency-histogram.desktop \
 	../scripts/linuxcnc_var \
 	../scripts/halcmd_twopass \
 	../scripts/runtests \
@@ -309,7 +316,7 @@ default: $(INFILES)
 # is listed here.  Note that due to $(INCLUDE), defined above, the include
 # files in the source tree are the ones used when building linuxcnc.  The copy
 # in ../include is used when building external components of linuxcnc.
-HEADERS := \
+SRCHEADERS := \
     emc/linuxcnc.h \
     emc/ini/emcIniFile.hh \
     emc/ini/iniaxis.hh \
@@ -432,7 +439,7 @@ HEADERS := \
 
 # the "headers" target installs all the header files in ../include
 .PHONY: headers
-HEADERS := $(patsubst %,../include/%,$(foreach h,$(HEADERS),$(notdir $h)))
+HEADERS := $(patsubst %,../include/%,$(foreach h,$(SRCHEADERS),$(notdir $h)))
 headers: $(HEADERS)
 
 # install header files as part of the build
@@ -496,7 +503,11 @@ pythonclean:
 	find . -name __pycache__ | xargs -r rm -r
 python: $(PYTARGETS)
 userspace: python
-clean: docclean pythonclean cscopeclean
+inclean:
+	$(RM) $(INFILES)
+headersclean:
+	$(RM) $(HEADERS)
+clean: docclean pythonclean cscopeclean inclean headersclean
 
 # This is the gateway into the crazy world of "kbuild", the linux 2.6 system
 # for building kernel modules.	Other kernel module build styles need to be
@@ -597,21 +608,34 @@ MENUS = ../share/menus/CNC.menu \
     ../share/desktop-directories/cnc.directory \
     ../share/applications/linuxcnc.desktop \
     ../share/applications/linuxcnc-latency.desktop \
+    ../share/applications/linuxcnc-latency-histogram.desktop \
 
 install-menus install-menu: $(MENUS)
 	mkdir -p $(HOME)/.config/menus/applications-merged
 	cp $< $(HOME)/.config/menus/applications-merged
 else
 
-DOCS=README.adoc AUTHORS
+DOCS=README.adoc INSTALL.adoc AUTHORS
 
-DOCS_HELP=$(call GLOB,../docs/help/*)
+# FIXME figure out how to install translated docs in subdirs
+DOCS_HELP=$(call GLOB,../docs/help/*.adoc)
+
 NC_FILES=$(filter-out %/butterfly.ngc,$(call GLOB,../nc_files/*))
 TCL=$(call GLOB,../tcl/*.tcl)
 TCL_BIN=$(call GLOB,../tcl/bin/*.tcl) ../tcl/bin/popimage
 
-install: install-kernel-dep install-kernel-indep
+install:
+	$(MAKE) install-docs || echo "Ignored."
+	$(MAKE) install-kernel-dep || echo "Ignored."
+	$(MAKE) install-kernel-indep || echo "Ignored."
 	$(ECHO) "Installed in DESTDIR='$(DESTDIR)' with prefix $(prefix)"
+
+install-docs:
+	$(DIR) $(DESTDIR)$(docsdir)
+	$(FILE) $(addprefix ../docs/,$(DOCS)) $(DESTDIR)$(docsdir)
+	$(FILE) $(DOCS_HELP) $(DESTDIR)$(docsdir)
+	$(FILE) emc/usr_intf/axis/etc/axis_light_background $(DESTDIR)$(docsdir)
+	$(FILE) emc/usr_intf/axis/README $(DESTDIR)$(docsdir)/README.axis
 
 install-dirs:
 	$(DIR) $(DESTDIR)$(EMC2_RTLIB_DIR) \
@@ -656,6 +680,7 @@ install-kernel-indep: install-dirs
 	$(EXE) ../scripts/sim_pin $(DESTDIR)$(bindir)
 	$(FILE) ../*.png ../*.gif $(DESTDIR)$(datadir)/linuxcnc
 	$(FILE) ../lib/hallib/*   $(DESTDIR)$(datadir)/linuxcnc/hallib
+	$(FILE) ../tcl/*.png $(DESTDIR)$(tcldir)
 
 	# install all the sample configs, including subdirs (tar is required on debian systems, and common on others)
 	$(DIR) $(DESTDIR)$(sampleconfsdir)
@@ -681,8 +706,6 @@ install-kernel-indep: install-dirs
 	cp --no-dereference $(filter ../lib/%.so, $(TARGETS)) $(DESTDIR)$(libdir)
 	-ldconfig $(DESTDIR)$(libdir)
 	$(FILE) $(HEADERS) $(DESTDIR)$(includedir)/linuxcnc/
-	$(FILE) $(addprefix ../docs/,$(DOCS)) $(DESTDIR)$(docsdir)
-	$(FILE) $(DOCS_HELP) $(DESTDIR)$(docsdir)
 	$(TREE) $(NC_FILES) $(DESTDIR)$(ncfilesdir)
 	$(EXE) ../nc_files/M101 $(DESTDIR)$(ncfilesdir)
 	$(FILE) ../tcl/TkLinuxCNC $(DESTDIR)/etc/X11/app-defaults
@@ -725,6 +748,8 @@ install-python: install-dirs
 	$(DIR) $(DESTDIR)$(SITEPY)/qtvcp/lib/writer/ext
 	$(DIR) $(DESTDIR)$(SITEPY)/qtvcp/lib/qtplasmac
 	$(DIR) $(DESTDIR)$(SITEPY)/qtvcp/lib/qt_vismach
+	$(DIR) $(DESTDIR)$(SITEPY)/qtvcp/lib/qt_ngcgui
+	$(DIR) $(DESTDIR)$(SITEPY)/qtvcp/lib/qt_pdf
 	$(DIR) $(DESTDIR)$(SITEPY)/qtvcp/lib/gcode_utility
 	$(DIR) $(DESTDIR)$(SITEPY)/qtvcp/plugins
 	$(DIR) $(DESTDIR)$(SITEPY)/qtvcp/widgets
@@ -734,6 +759,7 @@ install-python: install-dirs
 	$(DIR) $(DESTDIR)$(SITEPY)/stepconf
 	$(DIR) $(DESTDIR)$(SITEPY)/pncconf
 	$(DIR) $(DESTDIR)$(SITEPY)/pyui
+	$(DIR) $(DESTDIR)$(SITEPY)/plasmac
 	$(FILE) ../lib/python/*.py ../lib/python/*.so $(DESTDIR)$(SITEPY)
 	$(FILE) ../lib/python/rs274/*.py $(DESTDIR)$(SITEPY)/rs274
 	$(FILE) ../lib/python/touchy/*.py $(DESTDIR)$(SITEPY)/touchy
@@ -743,24 +769,21 @@ install-python: install-dirs
 	$(FILE) ../lib/python/qtvcp/widgets/*.py $(DESTDIR)$(SITEPY)/qtvcp/widgets
 	$(FILE) ../lib/python/qtvcp/widgets/widget_icons/*.png ../lib/python/qtvcp/widgets/widget_icons/*.gif $(DESTDIR)$(SITEPY)/qtvcp/widgets/widget_icons
 	$(FILE) ../lib/python/qtvcp/plugins/*.py $(DESTDIR)$(SITEPY)/qtvcp/plugins
-	$(FILE) ../lib/python/qtvcp/lib/*.py $(DESTDIR)$(SITEPY)/qtvcp/lib
-	$(FILE) ../lib/python/qtvcp/lib/writer/*.py $(DESTDIR)$(SITEPY)/qtvcp/lib/writer
-	$(FILE) ../lib/python/qtvcp/lib/writer/ext/*.py $(DESTDIR)$(SITEPY)/qtvcp/lib/writer/ext
-	$(FILE) ../lib/python/qtvcp/lib/qtplasmac/*.py $(DESTDIR)$(SITEPY)/qtvcp/lib/qtplasmac
-	$(FILE) ../lib/python/qtvcp/lib/qt_vismach/*.py $(DESTDIR)$(SITEPY)/qtvcp/lib/qt_vismach
-	$(FILE) ../lib/python/qtvcp/lib/gcode_utility/*.py ../lib/python/qtvcp/lib/gcode_utility/*.ui ../lib/python/qtvcp/lib/gcode_utility/*.txt $(DESTDIR)$(SITEPY)/qtvcp/lib/gcode_utility
+	$(TREE) ../lib/python/qtvcp/lib/* $(DESTDIR)$(SITEPY)/qtvcp/lib
 	$(FILE) ../lib/python/gmoccapy/*.py $(DESTDIR)$(SITEPY)/gmoccapy
 	$(FILE) ../lib/python/gladevcp/*.py $(DESTDIR)$(SITEPY)/gladevcp
 	$(FILE) ../lib/python/gladevcp/*.glade $(DESTDIR)$(SITEPY)/gladevcp
 	$(FILE) ../lib/python/stepconf/*.py $(DESTDIR)$(SITEPY)/stepconf
 	$(FILE) ../lib/python/pncconf/*.py $(DESTDIR)$(SITEPY)/pncconf
 	$(FILE) ../lib/python/pyui/*.py $(DESTDIR)$(SITEPY)/pyui
+	$(FILE) ../lib/python/plasmac/*.py $(DESTDIR)$(SITEPY)/plasmac
 	$(EXE) ../bin/stepconf $(DESTDIR)$(bindir)
 	$(EXE) ../bin/pncconf $(DESTDIR)$(bindir)
 	$(EXE) ../bin/pyui $(DESTDIR)$(bindir)
 	$(EXE) ../bin/hal_input $(DESTDIR)$(bindir)
 	$(EXE) ../bin/mitsub_vfd $(DESTDIR)$(bindir)
 	$(EXE) ../bin/pmx485 $(DESTDIR)$(bindir)
+	$(EXE) ../bin/sim-torch $(DESTDIR)$(bindir)
 	$(EXE) ../bin/pyvcp $(DESTDIR)$(bindir)
 	$(EXE) ../bin/gladevcp $(DESTDIR)$(bindir)
 	$(EXE) ../bin/axis $(DESTDIR)$(bindir)
@@ -774,18 +797,12 @@ install-python: install-dirs
 	$(EXE) ../bin/gscreen $(DESTDIR)$(bindir)
 	$(EXE) ../bin/qtvcp $(DESTDIR)$(bindir)
 	$(EXE) ../lib/python/qtvcp/designer/install_script $(DESTDIR)$(SITEPY)/qtvcp/designer/
-	$(EXE) ../bin/qtplasmac-setup $(DESTDIR)$(bindir)
-	$(EXE) ../bin/qtplasmac-materials $(DESTDIR)$(bindir)
-	$(EXE) ../bin/qtplasmac-plasmac2qt $(DESTDIR)$(bindir)
-	$(EXE) ../bin/qtplasmac-cfg2prefs $(DESTDIR)$(bindir)
-	$(EXE) ../bin/pmx485-test $(DESTDIR)$(bindir)
 	$(EXE) ../bin/gmoccapy $(DESTDIR)$(bindir)
 	$(EXE) ../bin/teach-in $(DESTDIR)$(bindir)
 	$(EXE) ../bin/scorbot-er-3 $(DESTDIR)$(bindir)
 	$(EXE) $(patsubst %.py,../bin/%,$(VISMACH_PY)) $(DESTDIR)$(bindir)
+	$(EXE) $(patsubst %.py,../bin/%,$(QTPLASMAC_PY)) $(DESTDIR)$(bindir)
 	$(FILE) ../share/linuxcnc/linuxcnc-wizard.gif $(DESTDIR)$(prefix)/share/linuxcnc
-	$(FILE) emc/usr_intf/axis/etc/axis_light_background $(DESTDIR)$(docsdir)
-	$(FILE) emc/usr_intf/axis/README $(DESTDIR)$(docsdir)/README.axis
 	$(FILE) ../share/axis/images/*.png ../share/axis/images/*.gif ../share/axis/images/*.xbm ../share/axis/images/*.ngc $(DESTDIR)$(datadir)/axis/images
 	$(FILE) ../share/axis/tcl/*.tcl $(DESTDIR)$(datadir)/axis/tcl
 	$(FILE) ../share/gscreen/images/*.gif $(DESTDIR)$(datadir)/gscreen/images
@@ -887,9 +904,7 @@ obj-$(CONFIG_SIGGEN) += siggen.o
 siggen-objs := hal/components/siggen.o $(MATHSTUB)
 obj-$(CONFIG_PID) += pid.o
 pid-objs := hal/components/pid.o $(MATHSTUB)
-obj-$(CONFIG_AT_PID) += at_pid.o
-at_pid-objs := hal/components/at_pid.o $(MATHSTUB)
-obj-$(CONFIG_PID) += threads.o
+obj-$(CONFIG_THREADS) += threads.o
 threads-objs := hal/components/threads.o $(MATHSTUB)
 obj-$(CONFIG_SUPPLY) += supply.o
 supply-objs := hal/components/supply.o $(MATHSTUB)
@@ -972,6 +987,7 @@ hostmot2-objs :=			  \
     hal/drivers/mesa-hostmot2/resolver.o  \
     hal/drivers/mesa-hostmot2/sserial.o   \
     hal/drivers/mesa-hostmot2/ssr.o       \
+    hal/drivers/mesa-hostmot2/outm.o      \
     hal/drivers/mesa-hostmot2/stepgen.o   \
     hal/drivers/mesa-hostmot2/tp_pwmgen.o \
     hal/drivers/mesa-hostmot2/tram.o	  \
@@ -1137,6 +1153,7 @@ obj-m += 5axiskins.o
 
 obj-$(CONFIG_MOTMOD) += motmod.o
 motmod-objs := emc/kinematics/cubic.o
+motmod-objs += emc/motion/axis.o
 motmod-objs += emc/motion/motion.o
 motmod-objs += emc/motion/command.o
 motmod-objs += emc/motion/control.o
@@ -1218,7 +1235,6 @@ endif
 ../rtlib/mux_generic$(MODULE_EXT): $(addprefix objects/rt,$(mux_generic-objs))
 ../rtlib/pwmgen$(MODULE_EXT): $(addprefix objects/rt,$(pwmgen-objs))
 ../rtlib/siggen$(MODULE_EXT): $(addprefix objects/rt,$(siggen-objs))
-../rtlib/at_pid$(MODULE_EXT): $(addprefix objects/rt,$(at_pid-objs))
 ../rtlib/pid$(MODULE_EXT): $(addprefix objects/rt,$(pid-objs))
 ../rtlib/threads$(MODULE_EXT): $(addprefix objects/rt,$(threads-objs))
 ../rtlib/supply$(MODULE_EXT): $(addprefix objects/rt,$(supply-objs))

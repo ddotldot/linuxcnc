@@ -74,7 +74,7 @@
      <number>0</number>
     </property>
     <item>
-     <widget class="ScreenOptions" name="screen_options">
+     <widget class="ScreenOptions" name="screen_options" native="true">
       <property name="styleSheet">
        <string notr="true"/>
       </property>
@@ -98,7 +98,7 @@
        <bool>true</bool>
       </property>
       <property name="pref_filename_string" stdset="0">
-       <string notr="true">CONFIGFOLDER/qtplasmac.prefs</string>
+       <string>CONFIGFOLDER/qtvcp.prefs</string>
       </property>
       <property name="focusOverlay_option" stdset="0">
        <bool>true</bool>
@@ -252,7 +252,7 @@
           <enum>QTabWidget::South</enum>
          </property>
          <property name="currentIndex">
-          <number>2</number>
+          <number>0</number>
          </property>
          <property name="usesScrollButtons">
           <bool>false</bool>
@@ -496,7 +496,7 @@
                          <number>0</number>
                         </property>
                         <item>
-                         <widget class="GCodeGraphics" name="gcodegraphics">
+                         <widget class="GCodeGraphics" name="gcodegraphics" native="true">
                           <property name="sizePolicy">
                            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                             <horstretch>0</horstretch>
@@ -946,7 +946,7 @@
                       </widget>
                      </item>
                      <item>
-                      <widget class="FileManager" name="filemanager">
+                      <widget class="FileManager" name="filemanager" native="true">
                        <property name="sizePolicy">
                         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
                          <horstretch>0</horstretch>
@@ -1178,7 +1178,7 @@
                       </widget>
                      </item>
                      <item>
-                      <widget class="GcodeEditor" name="gcode_editor">
+                      <widget class="GcodeEditor" name="gcode_editor" native="true">
                        <property name="auto_show_mdi_status" stdset="0">
                         <bool>false</bool>
                        </property>
@@ -1518,7 +1518,7 @@ EDGE</string>
                          </widget>
                         </item>
                         <item>
-                         <widget class="CamView" name="camview"/>
+                         <widget class="CamView" name="camview" native="true"/>
                         </item>
                        </layout>
                       </widget>
@@ -1810,7 +1810,7 @@ EDGE</string>
                      </widget>
                     </item>
                     <item>
-                     <widget class="ActionButton" name="power">
+                     <widget class="QPushButton" name="power">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                         <horstretch>0</horstretch>
@@ -1848,50 +1848,6 @@ EDGE</string>
                        </size>
                       </property>
                       <property name="checkable">
-                       <bool>true</bool>
-                      </property>
-                      <property name="indicator_option" stdset="0">
-                       <bool>false</bool>
-                      </property>
-                      <property name="indicator_HAL_pin_option" stdset="0">
-                       <bool>false</bool>
-                      </property>
-                      <property name="indicator_status_option" stdset="0">
-                       <bool>false</bool>
-                      </property>
-                      <property name="checked_state_text_option" stdset="0">
-                       <bool>false</bool>
-                      </property>
-                      <property name="on_color" stdset="0">
-                       <color>
-                        <red>255</red>
-                        <green>0</green>
-                        <blue>0</blue>
-                       </color>
-                      </property>
-                      <property name="off_color" stdset="0">
-                       <color>
-                        <red>0</red>
-                        <green>0</green>
-                        <blue>0</blue>
-                       </color>
-                      </property>
-                      <property name="indicator_size" stdset="0">
-                       <double>0.200000000000000</double>
-                      </property>
-                      <property name="true_state_string" stdset="0">
-                       <string/>
-                      </property>
-                      <property name="false_state_string" stdset="0">
-                       <string/>
-                      </property>
-                      <property name="is_estopped_status" stdset="0">
-                       <bool>false</bool>
-                      </property>
-                      <property name="is_on_status" stdset="0">
-                       <bool>true</bool>
-                      </property>
-                      <property name="machine_on_action" stdset="0">
                        <bool>true</bool>
                       </property>
                      </widget>
@@ -3293,7 +3249,7 @@ EDGE</string>
                            </widget>
                           </item>
                           <item>
-                           <widget class="LED" name="led_arc_ok">
+                           <widget class="LED" name="led_arc_ok" native="true">
                             <property name="minimumSize">
                              <size>
                               <width>0</width>
@@ -3306,7 +3262,7 @@ EDGE</string>
                               <height>16777215</height>
                              </size>
                             </property>
-                            <property name="color">
+                            <property name="color" stdset="0">
                              <color>
                               <red>252</red>
                               <green>233</green>
@@ -3735,7 +3691,7 @@ EDGE</string>
                         <number>0</number>
                        </property>
                        <item>
-                        <widget class="LED" name="led_torch_on">
+                        <widget class="LED" name="led_torch_on" native="true">
                          <property name="minimumSize">
                           <size>
                            <width>0</width>
@@ -3748,7 +3704,7 @@ EDGE</string>
                            <height>16777215</height>
                           </size>
                          </property>
-                         <property name="color">
+                         <property name="color" stdset="0">
                           <color>
                            <red>252</red>
                            <green>233</green>
@@ -4019,7 +3975,7 @@ EDGE</string>
                         <number>0</number>
                        </property>
                        <item>
-                        <widget class="LED" name="led_kerf_lock">
+                        <widget class="LED" name="led_kerf_lock" native="true">
                          <property name="minimumSize">
                           <size>
                            <width>0</width>
@@ -4032,7 +3988,7 @@ EDGE</string>
                            <height>16777215</height>
                           </size>
                          </property>
-                         <property name="color">
+                         <property name="color" stdset="0">
                           <color>
                            <red>252</red>
                            <green>233</green>
@@ -4253,7 +4209,7 @@ EDGE</string>
                         <number>0</number>
                        </property>
                        <item>
-                        <widget class="LED" name="led_corner_lock">
+                        <widget class="LED" name="led_corner_lock" native="true">
                          <property name="minimumSize">
                           <size>
                            <width>0</width>
@@ -4266,7 +4222,7 @@ EDGE</string>
                            <height>16777215</height>
                           </size>
                          </property>
-                         <property name="color">
+                         <property name="color" stdset="0">
                           <color>
                            <red>252</red>
                            <green>233</green>
@@ -4506,7 +4462,7 @@ EDGE</string>
                         <number>4</number>
                        </property>
                        <item row="0" column="0">
-                        <widget class="LED" name="led_float_switch">
+                        <widget class="LED" name="led_float_switch" native="true">
                          <property name="minimumSize">
                           <size>
                            <width>0</width>
@@ -4519,7 +4475,7 @@ EDGE</string>
                            <height>16777215</height>
                           </size>
                          </property>
-                         <property name="color">
+                         <property name="color" stdset="0">
                           <color>
                            <red>252</red>
                            <green>233</green>
@@ -4551,7 +4507,7 @@ EDGE</string>
                         </widget>
                        </item>
                        <item row="1" column="0">
-                        <widget class="LED" name="led_ohmic_probe">
+                        <widget class="LED" name="led_ohmic_probe" native="true">
                          <property name="minimumSize">
                           <size>
                            <width>0</width>
@@ -4564,7 +4520,7 @@ EDGE</string>
                            <height>16777215</height>
                           </size>
                          </property>
-                         <property name="color">
+                         <property name="color" stdset="0">
                           <color>
                            <red>252</red>
                            <green>233</green>
@@ -4596,7 +4552,7 @@ EDGE</string>
                         </widget>
                        </item>
                        <item row="2" column="0">
-                        <widget class="LED" name="led_breakaway_switch">
+                        <widget class="LED" name="led_breakaway_switch" native="true">
                          <property name="minimumSize">
                           <size>
                            <width>0</width>
@@ -4609,7 +4565,7 @@ EDGE</string>
                            <height>16777215</height>
                           </size>
                          </property>
-                         <property name="color">
+                         <property name="color" stdset="0">
                           <color>
                            <red>252</red>
                            <green>233</green>
@@ -4813,7 +4769,7 @@ EDGE</string>
                         <number>0</number>
                        </property>
                        <item>
-                        <widget class="LED" name="led_thc_up">
+                        <widget class="LED" name="led_thc_up" native="true">
                          <property name="minimumSize">
                           <size>
                            <width>0</width>
@@ -4826,7 +4782,7 @@ EDGE</string>
                            <height>16777215</height>
                           </size>
                          </property>
-                         <property name="color">
+                         <property name="color" stdset="0">
                           <color>
                            <red>252</red>
                            <green>233</green>
@@ -4893,7 +4849,7 @@ EDGE</string>
                         </widget>
                        </item>
                        <item>
-                        <widget class="LED" name="led_thc_enabled">
+                        <widget class="LED" name="led_thc_enabled" native="true">
                          <property name="minimumSize">
                           <size>
                            <width>0</width>
@@ -4906,7 +4862,7 @@ EDGE</string>
                            <height>16777215</height>
                           </size>
                          </property>
-                         <property name="color">
+                         <property name="color" stdset="0">
                           <color>
                            <red>252</red>
                            <green>233</green>
@@ -4950,7 +4906,7 @@ EDGE</string>
                         <number>0</number>
                        </property>
                        <item>
-                        <widget class="LED" name="led_thc_down">
+                        <widget class="LED" name="led_thc_down" native="true">
                          <property name="minimumSize">
                           <size>
                            <width>0</width>
@@ -4963,7 +4919,7 @@ EDGE</string>
                            <height>16777215</height>
                           </size>
                          </property>
-                         <property name="color">
+                         <property name="color" stdset="0">
                           <color>
                            <red>252</red>
                            <green>233</green>
@@ -5030,7 +4986,7 @@ EDGE</string>
                         </widget>
                        </item>
                        <item>
-                        <widget class="LED" name="led_thc_active">
+                        <widget class="LED" name="led_thc_active" native="true">
                          <property name="minimumSize">
                           <size>
                            <width>0</width>
@@ -5043,7 +4999,7 @@ EDGE</string>
                            <height>16777215</height>
                           </size>
                          </property>
-                         <property name="color">
+                         <property name="color" stdset="0">
                           <color>
                            <red>252</red>
                            <green>233</green>
@@ -5082,7 +5038,7 @@ EDGE</string>
                  </size>
                 </property>
                 <property name="currentIndex">
-                 <number>1</number>
+                 <number>0</number>
                 </property>
                 <widget class="QWidget" name="jog_page">
                  <layout class="QVBoxLayout" name="verticalLayout_21">
@@ -6640,7 +6596,7 @@ MOVE</string>
                             <number>0</number>
                            </property>
                            <item>
-                            <widget class="MDIHistory" name="mdihistory">
+                            <widget class="MDIHistory" name="mdihistory" native="true">
                              <property name="soft_keyboard_option" stdset="0">
                               <bool>false</bool>
                              </property>
@@ -8852,7 +8808,7 @@ HOME ALL</string>
                         <number>0</number>
                        </property>
                        <item>
-                        <widget class="GCodeGraphics" name="conv_preview"/>
+                        <widget class="GCodeGraphics" name="conv_preview" native="true"/>
                        </item>
                       </layout>
                      </widget>
@@ -13368,36 +13324,20 @@ HOME ALL</string>
                  <property name="verticalSpacing">
                   <number>10</number>
                  </property>
-                 <item row="0" column="1">
-                  <widget class="QLabel" name="label_26">
+                 <item row="1" column="3">
+                  <widget class="QLabel" name="label_33">
                    <property name="text">
-                    <string>Soft Keyboard</string>
+                    <string>KB Shortcuts</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                    </property>
                   </widget>
                  </item>
-                 <item row="0" column="0">
-                  <widget class="QCheckBox" name="chk_soft_keyboard">
+                 <item row="7" column="0">
+                  <widget class="ActionButton" name="opt_stp">
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="text">
-                    <string/>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="4">
-                  <widget class="QCheckBox" name="chk_override_limits">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
@@ -13417,16 +13357,109 @@ HOME ALL</string>
                    <property name="text">
                     <string/>
                    </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="1">
-                  <widget class="QLabel" name="label_33">
-                   <property name="text">
-                    <string>KB Shortcuts</string>
+                   <property name="checkable">
+                    <bool>true</bool>
+                   </property>
+                   <property name="indicator_option" stdset="0">
+                    <bool>false</bool>
+                   </property>
+                   <property name="indicator_HAL_pin_option" stdset="0">
+                    <bool>false</bool>
+                   </property>
+                   <property name="indicator_status_option" stdset="0">
+                    <bool>false</bool>
+                   </property>
+                   <property name="on_color" stdset="0">
+                    <color>
+                     <red>255</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </property>
+                   <property name="indicator_size" stdset="0">
+                    <double>0.200000000000000</double>
+                   </property>
+                   <property name="is_optional_stop_status" stdset="0">
+                    <bool>false</bool>
+                   </property>
+                   <property name="optional_stop_action" stdset="0">
+                    <bool>true</bool>
                    </property>
                   </widget>
                  </item>
-                 <item row="3" column="4">
+                 <item row="1" column="4">
+                  <widget class="QCheckBox" name="chk_keyboard_shortcuts">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="7" column="2">
+                  <spacer name="horizontalSpacer_16">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item row="2" column="1">
+                  <widget class="QLabel" name="label_20">
+                   <property name="text">
+                    <string>View Material</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="0">
+                  <widget class="QCheckBox" name="chk_overlay">
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="7" column="1">
+                  <widget class="QLabel" name="label_36">
+                   <property name="text">
+                    <string>Optional Stop</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QCheckBox" name="chk_soft_keyboard">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="7" column="4">
                   <widget class="ActionButton" name="opt_blk">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -13480,13 +13513,13 @@ HOME ALL</string>
                   </widget>
                  </item>
                  <item row="3" column="1">
-                  <widget class="QLabel" name="label_36">
+                  <widget class="QLabel" name="label_46">
                    <property name="text">
-                    <string>Optional Stop</string>
+                    <string>Exit Warning</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="3" column="3">
+                 <item row="7" column="3">
                   <widget class="QLabel" name="label_37">
                    <property name="text">
                     <string>Optional Block</string>
@@ -13496,89 +13529,7 @@ HOME ALL</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="1" column="0">
-                  <widget class="QCheckBox" name="chk_keyboard_shortcuts">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="text">
-                    <string/>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="3">
-                  <widget class="QLabel" name="label_42">
-                   <property name="text">
-                    <string>Override Limits</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="3" column="0">
-                  <widget class="ActionButton" name="opt_stp">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>0</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="text">
-                    <string/>
-                   </property>
-                   <property name="checkable">
-                    <bool>true</bool>
-                   </property>
-                   <property name="indicator_option" stdset="0">
-                    <bool>false</bool>
-                   </property>
-                   <property name="indicator_HAL_pin_option" stdset="0">
-                    <bool>false</bool>
-                   </property>
-                   <property name="indicator_status_option" stdset="0">
-                    <bool>false</bool>
-                   </property>
-                   <property name="on_color" stdset="0">
-                    <color>
-                     <red>255</red>
-                     <green>0</green>
-                     <blue>0</blue>
-                    </color>
-                   </property>
-                   <property name="indicator_size" stdset="0">
-                    <double>0.200000000000000</double>
-                   </property>
-                   <property name="is_optional_stop_status" stdset="0">
-                    <bool>false</bool>
-                   </property>
-                   <property name="optional_stop_action" stdset="0">
-                    <bool>true</bool>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="4">
+                 <item row="4" column="0">
                   <widget class="QCheckBox" name="chk_run_from_line">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -13597,40 +13548,17 @@ HOME ALL</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="0" column="3">
-                  <widget class="QLabel" name="label_39">
+                 <item row="1" column="1">
+                  <widget class="QLabel" name="label_26">
                    <property name="text">
-                    <string>Run From Line</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                    <string>Soft Keyboard</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="3" column="2">
-                  <spacer name="horizontalSpacer_16">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>40</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                 <item row="2" column="0">
-                  <widget class="QCheckBox" name="chk_overlay">
+                 <item row="3" column="0">
+                  <widget class="QCheckBox" name="chk_exit_warning">
                    <property name="text">
                     <string/>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="1">
-                  <widget class="QLabel" name="label_20">
-                   <property name="text">
-                    <string>View Material</string>
                    </property>
                   </widget>
                  </item>
@@ -13651,6 +13579,68 @@ HOME ALL</string>
                   <widget class="QLabel" name="label_38">
                    <property name="text">
                     <string>Tool Tips</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="4">
+                  <widget class="QCheckBox" name="chk_override_limits">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="3">
+                  <widget class="QLabel" name="label_42">
+                   <property name="text">
+                    <string>Override Limits</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="4" column="4">
+                  <widget class="QCheckBox" name="chk_override_jog">
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="4" column="3">
+                  <widget class="QLabel" name="label_48">
+                   <property name="text">
+                    <string>Override Jog</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="4" column="1">
+                  <widget class="QLabel" name="label_39">
+                   <property name="text">
+                    <string>Run From Line</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -14465,36 +14455,36 @@ CONFIG</string>
                  <property name="verticalSpacing">
                   <number>16</number>
                  </property>
-                 <item row="7" column="3">
-                  <widget class="QLabel" name="rapid_time_t">
+                 <item row="2" column="0">
+                  <widget class="QPushButton" name="cut_length_reset">
                    <property name="text">
-                    <string notr="true">0.00</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                    <string>RESET</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="8" column="3">
-                  <widget class="QLabel" name="probe_time_t">
-                   <property name="text">
-                    <string notr="true">0.00</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="10" column="0">
-                  <widget class="QPushButton" name="all_reset">
-                   <property name="text">
-                    <string>RESET ALL</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="5" column="3">
+                 <item row="6" column="3">
                   <widget class="QLabel" name="torch_time_t">
                    <property name="text">
+                    <string notr="true">0:00:00</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="3">
+                  <widget class="QLabel" name="pierce_count_t">
+                   <property name="text">
+                    <string notr="true">0</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="2">
+                  <widget class="QLabel" name="cut_length">
+                   <property name="text">
                     <string notr="true">0.00</string>
                    </property>
                    <property name="alignment">
@@ -14502,57 +14492,73 @@ CONFIG</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="6" column="0">
+                 <item row="7" column="0">
+                  <widget class="QPushButton" name="cut_time_reset">
+                   <property name="text">
+                    <string>RESET</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="6" column="2">
+                  <widget class="QLabel" name="torch_time">
+                   <property name="text">
+                    <string notr="true">0:00:00</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="7" column="1">
+                  <widget class="QLabel" name="label_30">
+                   <property name="text">
+                    <string>CUTTING TIME</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="2">
+                  <widget class="QLabel" name="label_23">
+                   <property name="minimumSize">
+                    <size>
+                     <width>80</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>80</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>JOB</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="9" column="0">
                   <widget class="QPushButton" name="run_time_reset">
                    <property name="text">
                     <string>RESET</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="6" column="1">
-                  <widget class="QLabel" name="label_32">
+                 <item row="4" column="0">
+                  <widget class="QPushButton" name="rapid_time_reset">
                    <property name="text">
-                    <string>PROGRAM RUN TIME</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                    <string>RESET</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="6" column="2">
-                  <widget class="QLabel" name="run_time">
+                 <item row="4" column="1">
+                  <widget class="QLabel" name="label_34">
                    <property name="text">
-                    <string notr="true">0.00</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="6" column="3">
-                  <widget class="QLabel" name="run_time_t">
-                   <property name="text">
-                    <string notr="true">0.00</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="3" column="1">
-                  <widget class="QLabel" name="cut_length_label">
-                   <property name="text">
-                    <string>CUT LENGTH</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="3" column="2">
-                  <widget class="QLabel" name="cut_length">
-                   <property name="text">
-                    <string notr="true">0.00</string>
+                    <string>RAPID TIME</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -14581,34 +14587,34 @@ CONFIG</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="2" column="0">
-                  <widget class="QPushButton" name="pierce_reset">
+                 <item row="9" column="3">
+                  <widget class="QLabel" name="run_time_t">
+                   <property name="text">
+                    <string notr="true">0:00:00</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="6" column="0">
+                  <widget class="QPushButton" name="torch_time_reset">
                    <property name="text">
                     <string>RESET</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="2" column="1">
-                  <widget class="QLabel" name="label_28">
+                 <item row="7" column="3">
+                  <widget class="QLabel" name="cut_time_t">
                    <property name="text">
-                    <string>PIERCE COUNT</string>
+                    <string notr="true">0:00:00</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                    </property>
                   </widget>
                  </item>
-                 <item row="2" column="2">
-                  <widget class="QLabel" name="pierce_count">
-                   <property name="text">
-                    <string notr="true">0.00</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="3" column="3">
+                 <item row="2" column="3">
                   <widget class="QLabel" name="cut_length_t">
                    <property name="text">
                     <string notr="true">0.00</string>
@@ -14618,17 +14624,20 @@ CONFIG</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="4" column="0">
-                  <widget class="QPushButton" name="cut_time_reset">
+                 <item row="3" column="2">
+                  <widget class="QLabel" name="pierce_count">
                    <property name="text">
-                    <string>RESET</string>
+                    <string notr="true">0</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                    </property>
                   </widget>
                  </item>
-                 <item row="4" column="1">
-                  <widget class="QLabel" name="label_30">
+                 <item row="9" column="1">
+                  <widget class="QLabel" name="label_32">
                    <property name="text">
-                    <string>CUT TIME</string>
+                    <string>TOTAL RUN TIME</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -14636,58 +14645,29 @@ CONFIG</string>
                   </widget>
                  </item>
                  <item row="4" column="2">
+                  <widget class="QLabel" name="rapid_time">
+                   <property name="text">
+                    <string notr="true">0:00:00</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="7" column="2">
                   <widget class="QLabel" name="cut_time">
                    <property name="text">
-                    <string notr="true">0.00</string>
+                    <string notr="true">0:00:00</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                    </property>
                   </widget>
                  </item>
-                 <item row="5" column="2">
-                  <widget class="QLabel" name="torch_time">
+                 <item row="2" column="1">
+                  <widget class="QLabel" name="cut_length_label">
                    <property name="text">
-                    <string notr="true">0.00</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="3">
-                  <widget class="QLabel" name="pierce_count_t">
-                   <property name="text">
-                    <string notr="true">0.00</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="3" column="0">
-                  <widget class="QPushButton" name="cut_length_reset">
-                   <property name="text">
-                    <string>RESET</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="2">
-                  <widget class="QLabel" name="label_23">
-                   <property name="minimumSize">
-                    <size>
-                     <width>80</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>80</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="text">
-                    <string>JOB</string>
+                    <string>CUT LENGTH</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -14695,26 +14675,36 @@ CONFIG</string>
                   </widget>
                  </item>
                  <item row="4" column="3">
-                  <widget class="QLabel" name="cut_time_t">
+                  <widget class="QLabel" name="rapid_time_t">
                    <property name="text">
-                    <string notr="true">0.00</string>
+                    <string notr="true">0:00:00</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                    </property>
                   </widget>
                  </item>
-                 <item row="5" column="0">
-                  <widget class="QPushButton" name="torch_time_reset">
+                 <item row="9" column="2">
+                  <widget class="QLabel" name="run_time">
                    <property name="text">
-                    <string>RESET</string>
+                    <string notr="true">0:00:00</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                    </property>
                   </widget>
                  </item>
-                 <item row="5" column="1">
-                  <widget class="QLabel" name="label_31">
+                 <item row="13" column="0">
+                  <widget class="QPushButton" name="all_reset">
                    <property name="text">
-                    <string>TORCH ON TIME</string>
+                    <string>RESET ALL</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="1">
+                  <widget class="QLabel" name="label_28">
+                   <property name="text">
+                    <string>TORCH STARTS</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -14743,41 +14733,38 @@ CONFIG</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="7" column="0">
-                  <widget class="QPushButton" name="rapid_time_reset">
+                 <item row="12" column="0">
+                  <widget class="QLabel" name="label_27">
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="0">
+                  <widget class="QPushButton" name="pierce_reset">
                    <property name="text">
                     <string>RESET</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="7" column="1">
-                  <widget class="QLabel" name="label_34">
+                 <item row="6" column="1">
+                  <widget class="QLabel" name="label_31">
                    <property name="text">
-                    <string>RAPID TIME</string>
+                    <string>TORCH ON TIME</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                    </property>
                   </widget>
                  </item>
-                 <item row="7" column="2">
-                  <widget class="QLabel" name="rapid_time">
-                   <property name="text">
-                    <string notr="true">0.00</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="8" column="0">
+                 <item row="5" column="0">
                   <widget class="QPushButton" name="probe_time_reset">
                    <property name="text">
                     <string>RESET</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="8" column="1">
+                 <item row="5" column="1">
                   <widget class="QLabel" name="label_35">
                    <property name="text">
                     <string>PROBE TIME</string>
@@ -14787,20 +14774,60 @@ CONFIG</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="8" column="2">
+                 <item row="5" column="2">
                   <widget class="QLabel" name="probe_time">
                    <property name="text">
-                    <string notr="true">0.00</string>
+                    <string notr="true">0:00:00</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                    </property>
                   </widget>
                  </item>
-                 <item row="9" column="0">
-                  <widget class="QLabel" name="label_27">
+                 <item row="5" column="3">
+                  <widget class="QLabel" name="probe_time_t">
                    <property name="text">
-                    <string/>
+                    <string notr="true">0:00:00</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="8" column="0">
+                  <widget class="QPushButton" name="paused_time_reset">
+                   <property name="text">
+                    <string>RESET</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="8" column="1">
+                  <widget class="QLabel" name="label_50">
+                   <property name="text">
+                    <string>PAUSED TIME</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="8" column="2">
+                  <widget class="QLabel" name="paused_time">
+                   <property name="text">
+                    <string>0:00:00</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="8" column="3">
+                  <widget class="QLabel" name="paused_time_t">
+                   <property name="text">
+                    <string>0:00:00</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                    </property>
                   </widget>
                  </item>
@@ -15280,10 +15307,7 @@ CONFIG</string>
   <tabstop>color_disabled</tabstop>
   <tabstop>color_preview</tabstop>
   <tabstop>chk_soft_keyboard</tabstop>
-  <tabstop>chk_keyboard_shortcuts</tabstop>
   <tabstop>opt_stp</tabstop>
-  <tabstop>chk_run_from_line</tabstop>
-  <tabstop>chk_override_limits</tabstop>
   <tabstop>opt_blk</tabstop>
   <tabstop>grid_size</tabstop>
   <tabstop>cone_size</tabstop>

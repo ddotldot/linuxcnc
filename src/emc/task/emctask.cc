@@ -222,9 +222,6 @@ int emcTaskStateRestore()
     if (emcStatus->task.mode == EMC_TASK_MODE_AUTO) {
         // Validity of state tag checked within restore function
         res = pinterp->restore_from_tag(emcStatus->motion.traj.tag);
-	if (res != INTERP_OK)
-	    // Print error but don't bail
-	    print_interp_error(res);
     }
     return 0;
 }
@@ -271,6 +268,11 @@ int emcTaskAbort()
 int emcTaskSetMode(int mode)
 {
     int retval = 0;
+
+    if (jogging_is_active()) {
+        emcOperatorError(0, "Ignoring task mode change while jogging");
+        return 0;
+    }
 
     switch (mode) {
     case EMC_TASK_MODE_MANUAL:

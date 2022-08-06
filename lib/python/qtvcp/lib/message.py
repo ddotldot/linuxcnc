@@ -49,6 +49,7 @@ class Message:
 
                 if not name == None:
                     D = self['dialog-{}'.format(name)] = LcncDialog(window)
+                    D._request_name = 'INI_MESSAGE_{}'.format(name)
                     D.hal_init()
                     D.pinname = name
 
@@ -221,9 +222,9 @@ if __name__ == '__main__':
 
     dialoge = LcncDialog()
     e = QPushButton(w)
-    e.setText("Show critical\n persistant message!")
+    e.setText("Show critical\n persistent message!")
     e.move(10, 120)
-    e.clicked.connect(lambda data: m.showDialog(dialoge, 'This is a Critical persistant message',
+    e.clicked.connect(lambda data: m.showDialog(dialoge, 'This is a Critical persistent message',
                       details='There seems to be something wrong\n You must fix it to clear message', icon=m.CRITICAL,
                       display_type=LcncDialog.NONE,return_callback = callreturn, nblock=True))
 

@@ -1,7 +1,9 @@
 import os
 import subprocess
-
-from PyQt5.QtWidgets import QApplication
+from time import sleep
+from PyQt5.QtWidgets import (QApplication, QTabWidget, QStackedWidget,
+    QWidget, QGridLayout,QGraphicsBlurEffect, QGraphicsDropShadowEffect,
+                QGraphicsColorizeEffect)
 from PyQt5.QtCore import Qt, QProcess
 
 import linuxcnc
@@ -36,17 +38,26 @@ class _Lcnc_Action(object):
         self.home_all_warning_flag = False
         self.proc = None
 
+    def SET_DEBUG_LEVEL(self, level):
+        self.cmd.debug(level)
+
     def SET_ESTOP_STATE(self, state):
-        if state:
-            self.cmd.state(linuxcnc.STATE_ESTOP)
-        else:
-            self.cmd.state(linuxcnc.STATE_ESTOP_RESET)
+        if isinstance(state, bool):
+            if state:
+                self.cmd.state(linuxcnc.STATE_ESTOP)
+            else:
+                self.cmd.state(linuxcnc.STATE_ESTOP_RESET)
+        elif state in (state,linuxcnc.STATE_ESTOP,linuxcnc.STATE_ESTOP_RESET):
+            self.cmd.state(state)
 
     def SET_MACHINE_STATE(self, state):
-        if state:
-            self.cmd.state(linuxcnc.STATE_ON)
-        else:
-            self.cmd.state(linuxcnc.STATE_OFF)
+        if isinstance(state, bool):
+            if state:
+                self.cmd.state(linuxcnc.STATE_ON)
+            else:
+                self.cmd.state(linuxcnc.STATE_OFF)
+        elif state in (state,linuxcnc.STATE_ON,linuxcnc.STATE_ESTOP_OFF):
+            self.cmd.state(state)
 
     def SET_MOTION_TELEOP(self, value):
         # 1:teleop, 0: joint
@@ -183,10 +194,13 @@ class _Lcnc_Action(object):
             elif result == linuxcnc.RCS_ERROR:
                 LOG.debug('CALL_MDI_WAIT RCS error: {}'.format(time, result))
                 return -1
-            result = linuxcnc.error_channel().poll()
-            if result:
-                STATUS.emit('error', result[0], result[1])
-                LOG.error('CALL_MDI_WAIT Error: {}'.format(result[1]))
+            sleep(.5)
+            error = STATUS.ERROR.poll()
+            # next commented line just for debugging
+            #self.cmd.error_msg('returned:'+str(error))
+            if error:
+                STATUS.emit('error', error[0], error[1])
+                LOG.error('CALL_MDI_WAIT Error: {}'.format(error[1]))
                 return -1
         if mode_return:
             self.ensure_mode(premode)
@@ -720,6 +734,62 @@ class _Lcnc_Action(object):
                                         str(z_offset))
         self.proc.writeData(bytes(string_to_send, 'utf-8'))
         return 1
+
+    def ADD_WIDGET_TO_TAB(self, widgetTo, widget,name):
+        try:
+            if isinstance(widgetTo, QTabWidget):
+                tw = QWidget()
+                widgetTo.addTab(tw, name)
+            elif isinstance(widgetTo, QStackedWidget):
+                tw = QWidget()
+                widgetTo.setMinimumWidth(widget.minimumWidth())
+                widgetTo.setMaximumWidth(widget.maximumWidth())
+                widgetTo.addWidget(tw)
+            else:
+                LOG.warning('Widget {} is not a Tab or stacked Widget - skipping'.format(loc))
+                return False
+        except Exception as e:
+            LOG.warning("problem inserting child into location: {},{}".format(widget,e))
+            return False
+
+        layout = QGridLayout(tw)
+        layout.setContentsMargins(0,0,0,0)
+        layout.addWidget(widget, 0, 0)
+
+        return True
+
+    def SET_BLUR(self, widget, state, radius = 15):
+        if state:
+            blur = QGraphicsBlurEffect()
+            blur.setBlurRadius(radius)
+            widget.setGraphicsEffect(blur)
+            widget.hide()
+            widget.show()
+        else:
+            widget.setGraphicsEffect(None)
+
+    def SET_TINT(self, widget, state, color):
+        if state:
+            c = QGraphicsColorizeEffect()
+            c.setColor(color)
+            c.setStrength(1)
+            widget.setGraphicsEffect(c)
+            widget.hide()
+            widget.show()
+        else:
+            widget.setGraphicsEffect(None)
+
+    def SET_SHADOW(self, widget,state,color):
+        if state:
+            shadow = QGraphicsDropShadowEffect()
+            shadow.setBlurRadius(30)
+            shadow.setColor(color)
+            shadow.setOffset(10, 10)
+            widget.setGraphicsEffect(shadow)
+            widget.hide()
+            widget.show()
+        else:
+            widget.setGraphicsEffect(None)
 
     ######################################
     # Action Helper functions

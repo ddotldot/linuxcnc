@@ -264,7 +264,7 @@ class OffsetPage(Gtk.VBox):
         except:
             return None, None, None, None, None, None, None, None, None
 
-    # This allows hiding or showing columns from a text string of columnns
+    # This allows hiding or showing columns from a text string of columns
     # eg list ='ab'
     # default, all the columns are shown
     def set_col_visible(self, list, bool):
@@ -343,7 +343,7 @@ class OffsetPage(Gtk.VBox):
         else:
             tmpl = lambda s: self.imperial_text_template % s
 
-        # allow 'name' columnn text to be arbitrarily changed
+        # allow 'name' column text to be arbitrarily changed
         if col == 10:
             self.store[row][14] = new_text
             return

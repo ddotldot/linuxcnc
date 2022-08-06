@@ -34,23 +34,24 @@ BUTTON_6_CODE           = single-cut
 # this section required as is for removing z axis moves from the loaded gcode file
 [FILTER]
 PROGRAM_EXTENSION       = .ngc,.nc,.tap GCode File (*.ngc, *.nc, *.tap)
-ngc                     = ./qtplasmac/qtplasmac_gcode.py
-nc                      = ./qtplasmac/qtplasmac_gcode.py
-tap                     = ./qtplasmac/qtplasmac_gcode.py
+ngc                     = qtplasmac_gcode
+nc                      = qtplasmac_gcode
+tap                     = qtplasmac_gcode
 
 [RS274NGC]
-RS274NGC_STARTUP_CODE   = o<imperial_startup> call
+RS274NGC_STARTUP_CODE   = G20 G40 G49 G80 G90 G92.1 G94 G97 M52P1
 PARAMETER_FILE          = imperial_parameters.txt
 
-SUBROUTINE_PATH         = ./:./qtplasmac:../../nc_files/subroutines
+SUBROUTINE_PATH         = ./:../../nc_files
 
 # required for our material change
-USER_M_PATH             = ./:./qtplasmac
+USER_M_PATH             = ./:../../nc_files
 
 [HAL]
 TWOPASS                 = ON
 # the base machine
-HALFILE                 = machine.tcl
+HALFILE                 = sim_no_stepgen.tcl
+#HALFILE                 = sim_stepgen.tcl
 # component connections
 HALFILE                 = qtplasmac_comp.hal
 # custom hal commands
@@ -70,7 +71,7 @@ DEBUG                   = 0
 [EMCIO]
 EMCIO                   = io
 CYCLE_TIME              = 0.100
-TOOL_TABLE              = tool.tbl
+TOOL_TABLE              = imperial_tool.tbl
 
 [TASK]
 TASK                    = milltask
@@ -110,14 +111,14 @@ MAX_LIMIT               = 24.0001
 MAX_VELOCITY            = 10
 MAX_ACCELERATION        = 100
 TYPE                    = LINEAR
-MIN_FERROR              = 0.001
-FERROR                  = 0.1
+MIN_FERROR              = 0.2
+FERROR                  = 0.4
 HOME                    = 0.0
 HOME_OFFSET             = 0.0
 HOME_SEQUENCE           = 1
 HOME_USE_INDEX          = NO
-STEPGEN_MAXACCEL        = 120
-SCALE                   = 1
+STEPGEN_MAXACCEL        = 200
+STEP_SCALE              = 25.40
 STEPLEN                 = 1
 STEPSPACE               = 0
 DIRSETUP                = 8000
@@ -139,14 +140,14 @@ MAX_LIMIT               = 24.0001
 MAX_VELOCITY            = 10
 MAX_ACCELERATION        = 100
 TYPE                    = LINEAR
-MIN_FERROR              = 0.001
-FERROR                  = 0.1
+MIN_FERROR              = 0.2
+FERROR                  = 0.4
 HOME                    = 0.0
 HOME_OFFSET             = 0.0
 HOME_SEQUENCE           = -2
 HOME_USE_INDEX          = NO
-STEPGEN_MAXACCEL        = 120
-SCALE                   = 1
+STEPGEN_MAXACCEL        = 200
+STEP_SCALE              = 25.40
 STEPLEN                 = 1
 STEPSPACE               = 0
 DIRSETUP                = 8000
@@ -158,14 +159,14 @@ MAX_LIMIT               = 24.0001
 MAX_VELOCITY            = 10
 MAX_ACCELERATION        = 100
 TYPE                    = LINEAR
-MIN_FERROR              = 0.001
-FERROR                  = 0.1
+MIN_FERROR              = 0.2
+FERROR                  = 0.4
 HOME                    = 0.0
 HOME_OFFSET             = 0.0
 HOME_SEQUENCE           = -2
 HOME_USE_INDEX          = NO
-STEPGEN_MAXACCEL        = 120
-SCALE                   = 1
+STEPGEN_MAXACCEL        = 200
+STEP_SCALE              = 25.40
 STEPLEN                 = 1
 STEPSPACE               = 0
 DIRSETUP                = 8000
@@ -188,14 +189,14 @@ MAX_LIMIT               = 3.0001
 MAX_VELOCITY            = 2.4
 MAX_ACCELERATION        = 24.0
 TYPE                    = LINEAR
-MIN_FERROR              = 0.001
-FERROR                  = 0.1
+MIN_FERROR              = 0.2
+FERROR                  = 0.4
 HOME                    = 2.8
 HOME_OFFSET             = 3.0
 HOME_SEQUENCE           = 0
 HOME_USE_INDEX          = NO
-STEPGEN_MAXACCEL        = 28.0
-SCALE                   = 1.0
+STEPGEN_MAXACCEL        = 48.0
+STEP_SCALE              = 25.40
 STEPLEN                 = 1
 STEPSPACE               = 0
 DIRSETUP                = 8000

@@ -122,7 +122,7 @@ class FileManager(QWidget, _HalWidgetBase):
         self.cb = QComboBox()
         self.cb.currentIndexChanged.connect(self.filterChanged)
         self.fillCombobox(INFO.PROGRAM_FILTERS_EXTENSIONS)
-        self.cb.setMinimumHeight(30)
+        self.cb.setMinimumSize(200,30)
         self.cb.setSizePolicy(QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed))
 
         self.button2 = QToolButton()
@@ -161,7 +161,7 @@ class FileManager(QWidget, _HalWidgetBase):
         if self.PREFS_:
             last_path = self.PREFS_.getpref('last_loaded_directory', self.user_path, str, 'BOOK_KEEPING')
             LOG.debug("lAST FILE PATH: {}".format(last_path))
-            if not last_path == '':
+            if not last_path == '' and os.path.exists(last_path):
                 self.updateDirectoryView(last_path)
             else:
                 self.updateDirectoryView(self.user_path)
