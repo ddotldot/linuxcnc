@@ -400,6 +400,10 @@ static PyMemberDef Stat_members[] = {
     {(char*)"tool_in_spindle", T_INT, O(io.tool.toolInSpindle), READONLY,
         (char*)"The tool number of the currently loaded tool, or 0 if no tool is loaded."
     },
+    {(char*)"tool_from_pocket", T_INT, O(io.tool.toolFromPocket), READONLY,
+        (char*)"The pocket number that the currently loaded tool was retrieved from,\n"
+        "or 0 if no tool is loaded."
+    },
 
 // EMC_COOLANT_STAT io.cooland
     {(char*)"mist", T_INT, O(io.coolant.mist), READONLY},
@@ -722,11 +726,6 @@ static PyObject *Stat_tool_table(pyStatChannel *s) {
     return res;
 }
 
-static PyObject *Stat_axes(pyStatChannel *s) {
-    PyErr_WarnEx(PyExc_DeprecationWarning, "stat.axes is deprecated and will be removed in the future", 0);
-    return PyLong_FromLong(s->status.motion.traj.deprecated_axes);
-}
-
 // XXX io.tool.toolTable
 // XXX EMC_JOINT_STAT motion.joint[]
 
@@ -761,7 +760,6 @@ static PyGetSetDef Stat_getsetlist[] = {
         (char*)"The tooltable, expressed as a list of tools.  Each tool is a dict with the\n"
         "tool id (tool number), diameter, offsets, etc."
     },
-    {(char*)"axes", (getter)Stat_axes},
     {NULL}
 };
 

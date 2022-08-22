@@ -39,21 +39,26 @@ def move_options_to_prefs_file(inifile, prefs):
         prefs.putpref('DRO position', data, str, 'GUI_OPTIONS')
     data = inifile.find('QTPLASMAC', 'FLASH_ERROR') or None
     if data:
+        data = True if data.lower() in ('yes', 'y', 'true', 't', '1') else False
         prefs.putpref('Flash error', data, bool, 'GUI_OPTIONS')
     data = inifile.find('QTPLASMAC', 'HIDE_RUN') or None
     if data:
+        data = True if data.lower() in ('yes', 'y', 'true', 't', '1') else False
         prefs.putpref('Hide run', data, bool, 'GUI_OPTIONS')
     data = inifile.find('QTPLASMAC', 'HIDE_PAUSE') or None
     if data:
+        data = True if data.lower() in ('yes', 'y', 'true', 't', '1') else False
         prefs.putpref('Hide pause', data, bool, 'GUI_OPTIONS')
     data = inifile.find('QTPLASMAC', 'HIDE_ABORT') or None
     if data:
+        data = True if data.lower() in ('yes', 'y', 'true', 't', '1') else False
         prefs.putpref('Hide abort', data, bool, 'GUI_OPTIONS')
     data = inifile.find('QTPLASMAC', 'CUSTOM_STYLE') or None
     if data:
         prefs.putpref('Custom style', data, str, 'GUI_OPTIONS')
     data = inifile.find('QTPLASMAC', 'AUTOREPEAT_ALL') or None
     if data:
+        data = True if data.lower() in ('yes', 'y', 'true', 't', '1') else False
         prefs.putpref('Autorepeat all', data, bool, 'GUI_OPTIONS')
     data = inifile.find('QTPLASMAC', 'LASER_TOUCHOFF') or None
     if data:
@@ -204,6 +209,7 @@ def split_prefs_file(old, new, prefs):
 
 # use qtplasmac_comp.hal for component connections (pre V1.221.154 2022/01/18)
 def add_component_hal_file(path, halfiles):
+    tmpFile = None
     pinsToCheck = ['PLASMAC COMPONENT INPUTS','plasmac.arc-ok-in','plasmac.axis-x-position',
                    'plasmac.axis-y-position','plasmac.breakaway','plasmac.current-velocity',
                    'plasmac.cutting-start','plasmac.cutting-stop','plasmac.feed-override',
@@ -234,7 +240,7 @@ def add_component_hal_file(path, halfiles):
                                 if any(pin in line for pin in pinsToCheck):
                                     continue
                                 outFile.write(line)
-    if os.path.isfile(tmpFile):
+    if tmpFile and os.path.isfile(tmpFile):
         os.remove(tmpFile)
 
 def add_component_hal_file_iniwrite(inifile):

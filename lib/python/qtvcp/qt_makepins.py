@@ -42,6 +42,7 @@ class QTPanel():
         xmlname = path.XML
         self.window = window
         self.window['PREFS_'] = None
+        self.window['panel_'] = self
         self._screenOptions = None
         self._geo_string = ''
 
@@ -81,7 +82,9 @@ class QTPanel():
         if INFO.TAB_CMDS:
             for name, loc, cmd in INFO.ZIPPED_TABS:
                 # install a QTvcp panel instance
-                if 'qtvcp' in cmd:
+                # if 'loadusr' is present, it's assumed embedding into AXIS
+                # so ignore it.
+                if 'qtvcp' in cmd and not 'loadusr' in cmd:
                     cmd = cmd.split()[1]
                     LOG.info('green<QTVCP: Found external qtvcp {} panel to instantiate>'.format(cmd))
 
@@ -121,7 +124,7 @@ class QTPanel():
     # Search all hal-ifed widgets for _hal_cleanup functions and call them
     # used for such things as preference recording current settings
     def shutdown(self):
-        if self.window['PREFS_']:
+        if not self.window['PREFS_'] is None:
             self.record_preference_geometry()
         LOG.debug("Calling widget's _hal_cleanup functions.")
         for widget in self.window.getRegisteredHalWidgetList():
@@ -153,7 +156,7 @@ class QTPanel():
     # if there is a screen option widget and we haven't set INI switch geometry
     # then call screenoptions function to set preference geometry
     def set_preference_geometry(self):
-        if self.window['PREFS_']:
+        if not self.window['PREFS_'] is None:
             self.geometry_parsing()
         else:
             LOG.info('No preference file - cannot set preference geometry.')
