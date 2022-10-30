@@ -2051,7 +2051,7 @@ class TclCommands(nf.TclCommands):
 
             size = os.stat(loaded_file).st_size
             lines = int(widgets.text.index("end").split(".")[0])-2
-            props['size'] = _("%(size)s bytes\n%(lines)s gcode lines") % {'size': size, 'lines': lines}
+            props['size'] = _("%(size)s bytes\n%(lines)s G-code lines") % {'size': size, 'lines': lines}
 
             if vars.metric.get():
                 conv = 1
@@ -3396,7 +3396,7 @@ for j in range(jointcount):
 
 axis_type = [None] * linuxcnc.MAX_AXIS
 for a in range(linuxcnc.MAX_AXIS):
-    # supply defaults, supersede with ini [AXIS_*]TYPE
+    # supply defaults, supersede with INI [AXIS_*]TYPE
     letter = "xyzabcuvw"[a]
     if not (letter in trajcoordinates): continue
     if letter in "abc":
@@ -3532,7 +3532,7 @@ if db_program is not None: default_tooleditor = None
 tooleditor = inifile.find("DISPLAY","TOOL_EDITOR") or default_tooleditor
 
 if inifile.find("RS274NGC", "PARAMETER_FILE") is None:
-    raise SystemExit("Missing ini file setting for [RS274NGC]PARAMETER_FILE")
+    raise SystemExit("Missing INI file setting for [RS274NGC]PARAMETER_FILE")
 try:
     lu = units(inifile.find("TRAJ", "LINEAR_UNITS"))
 except TypeError:
@@ -3963,7 +3963,7 @@ if hal_present == 1 :
         root_window.bind("<Control-e>", commands.toggle_show_pyvcppanel)
         help2 += [("Ctrl-E", _("toggle PYVCP panel visibility"))]
     else:
-        widgets.menu_view.delete(_("Show pyVCP pan_el").replace("_", ""))
+        widgets.menu_view.delete(_("Show PyVCP pan_el").replace("_", ""))
 
     gladevcp = inifile.find("DISPLAY", "GLADEVCP")
     if gladevcp:
@@ -4069,17 +4069,32 @@ def _dynamic_tabs(inifile):
     # may forward keyboard events to it
     rxid = root_window.winfo_id()
     os.environ['AXIS_FORWARD_EVENTS_TO'] = str(rxid)
-
     for i,t,c in zip(list(range(len(tab_cmd))), tab_names, tab_cmd):
         w = _dynamic_tab("user_" + str(i), t)
-        f = Tkinter.Frame(w, container=1, borderwidth=0, highlightthickness=0)
-        f.pack(fill="both", expand=1)
-        xid = f.winfo_id()
-        cmd = c.replace('{XID}', str(xid)).split()
-        child = Popen(cmd)
-        wait = cmd[:2] == ['halcmd', 'loadusr']
+        if c.split()[0] == 'pyvcp': # this is a pycvp panel
+            import vcpparse
+            f = Tkinter.Frame(w, borderwidth=0, highlightthickness=0)
+            pyvcp = c.split()
+            if len(pyvcp) != 2:
+                print("Invalid PyVCP tab configuration: EMBED_TAB COMMAND =", c)
+                print("Incorrect number of parameters")
+                continue
+            try:
+                f.pack(fill="y", expand=0)
+                vcpparse.filename = pyvcp[1]
+                vcpparse.create_vcp(f, comp=None, compname=t.lower().replace(' ','_'))
+            except Exception as e:
+                print("Invalid PyVCP tab configuration: EMBED_TAB COMMAND =", c)
+                print(e)
+        else: # this is a gladevcp panel
+            f = Tkinter.Frame(w, container=1, borderwidth=0, highlightthickness=0)
+            f.pack(fill="both", expand=1)
+            xid = f.winfo_id()
+            cmd = c.replace('{XID}', str(xid)).split()
+            child = Popen(cmd)
+            wait = cmd[:2] == ['halcmd', 'loadusr']
 
-        _dynamic_childs[str(w)] = (child, cmd, wait)
+            _dynamic_childs[str(w)] = (child, cmd, wait)
 
 @atexit.register
 def kill_dynamic_childs():

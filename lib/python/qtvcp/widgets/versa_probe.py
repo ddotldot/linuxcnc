@@ -21,10 +21,9 @@ import hal
 import json
 
 from PyQt5 import QtGui, QtCore, QtWidgets, uic
-from PyQt5.QtCore import QProcess, QByteArray, QEvent
+from PyQt5.QtCore import QProcess, QEvent
 
 from qtvcp.widgets.widget_baseclass import _HalWidgetBase
-from qtvcp.widgets.simple_widgets import PushButton
 from qtvcp.core import Status, Action, Info
 from qtvcp import logger
 # Instantiate the libraries with global reference
@@ -34,6 +33,8 @@ STATUS = Status()
 ACTION = Action()
 INFO = Info()
 LOG = logger.getLogger(__name__)
+# Force the log level for this module
+LOG.setLevel(logger.DEBUG) # One of DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 current_dir = os.path.dirname(__file__)
 SUBPROGRAM = os.path.abspath(os.path.join(current_dir, 'probe_subprog.py'))
@@ -74,6 +75,10 @@ class VersaProbe(QtWidgets.QWidget, _HalWidgetBase):
         self.outside_buttonGroup.buttonClicked.connect(self.probe_btn_clicked)
         self.skew_buttonGroup.buttonClicked.connect(self.probe_btn_clicked)
         self.length_buttonGroup.buttonClicked.connect(self.probe_btn_clicked)
+        self.pbtn_set_x.released.connect(self.pbtn_set_x_released)
+        self.pbtn_set_y.released.connect(self.pbtn_set_y_released)	
+        self.pbtn_set_z.released.connect(self.pbtn_set_z_released)
+        self.pbtn_set_angle.released.connect(self.pbtn_set_angle_released)
 
         self.buildToolTip(self.input_search_vel, 'Search Velocity', 'search_vel')
         self.buildToolTip(self.input_probe_vel, 'Probe Velocity', 'probe_vel')
@@ -247,7 +252,8 @@ class VersaProbe(QtWidgets.QWidget, _HalWidgetBase):
             return
         self.start_process()
         string_to_send = cmd + '$' + json.dumps(self.send_dict) + '\n'
-#        print("String to send ", string_to_send)
+        #print("String to send ", string_to_send)
+        STATUS.block_error_polling()
         self.proc.writeData(bytes(string_to_send, 'utf-8'))
 
     def process_started(self):
@@ -266,17 +272,21 @@ class VersaProbe(QtWidgets.QWidget, _HalWidgetBase):
     def process_finished(self, exitCode, exitStatus):
         LOG.info(("Probe Process finished - exitCode {} exitStatus {}".format(exitCode, exitStatus)))
         self.proc = None
+        STATUS.unblock_error_polling()
 
     def parse_input(self, line):
         line = line.decode("utf-8")
         if "ERROR" in line:
-            print(line)
+            #print(line)
+            STATUS.unblock_error_polling()
+            ACTION.SET_ERROR_MESSAGE('Versa Probe process finished in error')
         elif "DEBUG" in line:
             print(line)
         elif "INFO" in line:
             print(line)
         elif "COMPLETE" in line:
-            LOG.info("Probing routine completed without errors")
+            STATUS.unblock_error_polling()
+            LOG.info("Versa Probing routine completed without errors")
             return_data = line.rstrip().split('$')
             data = json.loads(return_data[1])
             self.show_results(data)
@@ -354,9 +364,12 @@ class VersaProbe(QtWidgets.QWidget, _HalWidgetBase):
         for key in ['allow_auto_zero', 'allow_auto_skew']:
             val = '1' if self[key].isChecked() else '0'
             self.send_dict.update( {key: val} )
-        
+
     def check_probe(self):
-        self.led_probe_function_chk.setState(hal.get_value('motion.probe-input'))
+        try:
+            self.led_probe_function_chk.setState(hal.get_value('motion.probe-input'))
+        except:
+            pass
 
     def show_results(self, line):
         for key in self.status_list:

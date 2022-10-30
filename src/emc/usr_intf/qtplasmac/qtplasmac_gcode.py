@@ -1,3 +1,4 @@
+
 '''
 plasmac_gcode.py
 
@@ -26,8 +27,7 @@ import math
 import shutil
 import time
 from subprocess import run as RUN
-from PyQt5 import QtCore, QtGui
-from PyQt5.QtCore import Qt, QRect
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QDialog, QScrollArea, QWidget, QVBoxLayout, QLabel, QPushButton, QStyle, QFrame
 
@@ -136,6 +136,8 @@ errors  = 'The following errors will affect the process.\n'
 errors += 'Errors must be fixed before reloading this file.\n'
 errorMath = []
 errorMissMat = []
+errorNoMat = []
+errorBadMat = []
 errorTempMat = []
 errorNewMat = []
 errorEditMat = []
@@ -314,7 +316,7 @@ def get_hole_diameter(I, J, isHole):
 
 # turn torch off and move 4mm (0.157) past hole end
 def overburn(I, J, radius):
-    global lineNum, lineNumOrg, errorLines, lastX, lastY, torchEnable, ocLength, warnCompTorch, arcDistMode, oBurnX, oBurnY
+    global lineNum, lineNumOrg, errorLines, lastX, lastY, torchEnable, ocLength, warnCompTorch, arcDistMode, oBurnX, oBurnY, codeWarn
     centerX = lastX + I
     centerY = lastY + J
     cosA = math.cos(ocLength / radius)
@@ -466,21 +468,36 @@ def check_math(axis):
     return False
 # do material change
 def do_material_change():
-    global lineNum, lineNumOrg, errorLines, firstMaterial, codeError, errorMissMat
+    global lineNum, lineNumOrg, errorLines, firstMaterial, codeError, errorMissMat, errorNoMat, errorBadMat
     if '(' in line:
-        c = line.split('(', 1)[0]
+        a = line.split('(', 1)[0]
     elif ';' in line:
-        c = line.split(';', 1)[0]
+        a = line.split(';', 1)[0]
     else:
-        c = line
-    a, b = c.split('p', 1)
+        a = line
+    b = a.replace('m190', '').strip()
+    # check for missing p or material
+    if not len(b) or b[0] != 'p' or b == 'p':
+        codeError = True
+        errorNoMat.append(lineNum)
+        errorLines.append(lineNumOrg)
+        gcodeList.append(';{}'.format(line))
+        return True
+    c = b.split('p', 1)[1]
     m = ''
     # get the material number
-    for mNum in b.strip():
+    for mNum in c.strip():
         if mNum in '0123456789':
             m += mNum
+        else:
+            codeError = True
+            errorBadMat.append(lineNum)
+            errorLines.append(lineNumOrg)
+            gcodeList.append(';{}'.format(line))
+            return True
     material[0] = int(m)
     material[1] = True
+    # check if material exists
     if material[0] not in materialDict and material[0] < 1000000:
         codeError = True
         errorMissMat.append(lineNum)
@@ -578,7 +595,7 @@ def check_material_edit():
 
 # write temporary materials file
 def write_temporary_material(data):
-    global lineNum, lineNumOrg, errorLines, errorTempMat, warnMatLoad, material, codeError
+    global lineNum, lineNumOrg, errorLines, errorTempMat, warnMatLoad, material, codeError, codeWarn
     try:
         with open(tmpMaterialFile, 'w') as fWrite:
             if gui == 'plasmac':
@@ -621,7 +638,7 @@ def write_temporary_material(data):
 
 # rewrite the material file
 def rewrite_material_file(newMaterial):
-    global lineNum, warnMatLoad, errorLines
+    global lineNum, warnMatLoad, errorLines, codeWarn
     copyFile = '{}.bkp'.format(materialFile)
     shutil.copy(materialFile, copyFile)
     inFile = open(copyFile, 'r')
@@ -1182,6 +1199,12 @@ if codeError or codeWarn:
         if errorMissMat:
             msg  = 'The Material selected is missing from the material file.\n'
             errorText += message_set(errorMissMat, msg)
+        if errorNoMat:
+            msg  = 'A Material was not specified after M190.\n'
+            errorText += message_set(errorNoMat, msg)
+        if errorBadMat:
+            msg  = 'An invalid Material was specified after M190 P.\n'
+            errorText += message_set(errorBadMat, msg)
         if errorTempMat:
             msg  = 'Error attempting to add a temporary material.\n'
             errorText += message_set(errorTempMat, msg)
