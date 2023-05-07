@@ -710,6 +710,7 @@ class LivePlotter:
         self.last_speed = -1
         self.last_spindle_rpm = -1
         self.last_spindle_ang = -1
+        self.last_spindle_at_speed = False
         self.last_limit = None
         self.last_motion_mode = None
         self.last_joint_position = None
@@ -822,6 +823,7 @@ class LivePlotter:
         speed = self.stat.current_vel
         spindle_rpm = hal.get_value("axisui.display-spindle-speed")
         spindle_ang = hal.get_value("axisui.display-spindle-angle")
+        spindle_at_speed = hal.get_value("axisui.display-spindle-at-speed")
 
         limits = soft_limits()
 
@@ -843,7 +845,8 @@ class LivePlotter:
                 or self.stat.motion_mode != self.last_motion_mode
                 or abs(speed - self.last_speed) > .01
                 or abs(spindle_rpm - self.last_spindle_rpm) > 1.0
-                or abs(spindle_ang - self.last_spindle_ang) > 0.00027):
+                or abs(spindle_ang - self.last_spindle_ang) > 0.00027
+                or spindle_at_speed != self.last_spindle_at_speed):
             o.redraw_soon()
             o.last_limits = limits
             o.last_limit = self.stat.limit
@@ -860,6 +863,7 @@ class LivePlotter:
             self.last_speed = speed
             self.last_spindle_rpm = spindle_rpm
             self.last_spindle_ang = spindle_ang
+            self.last_spindle_at_speed = spindle_at_speed
             self.lastpts = self.logger.npts
 
         root_window.update_idletasks()
@@ -3902,6 +3906,7 @@ if hal_present == 1 :
     comp.newpin("abort", hal.HAL_BIT, hal.HAL_OUT)
     comp.newpin("display-spindle-speed", hal.HAL_FLOAT, hal.HAL_IN)
     comp.newpin("display-spindle-angle", hal.HAL_FLOAT, hal.HAL_IN)
+    comp.newpin("display-spindle-at-speed", hal.HAL_BIT, hal.HAL_IN)
 
     vars.has_ladder.set(hal.component_exists('classicladder_rt'))
 

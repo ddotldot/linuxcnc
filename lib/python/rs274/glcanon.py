@@ -31,51 +31,41 @@ def minmax(*args):
     return min(*args), max(*args)
 
 allhomedicon = array.array('B',
-        [0x00, 0x00,
-         0x00, 0x00,
-         0x00, 0x00,
-         0x08, 0x20,
-         0x08, 0x20,
-         0x08, 0x20,
-         0x08, 0x20,
-         0x08, 0x20,
-         0x0f, 0xe0,
-         0x08, 0x20,
-         0x08, 0x20,
-         0x08, 0x20,
-         0x08, 0x20,
-         0x00, 0x00,
-         0x00, 0x00,
-         0x00, 0x00])
+       [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x20,
+        0x08, 0x20, 0x08, 0x20, 0x08, 0x20, 0x08, 0x20,
+        0x0f, 0xe0, 0x08, 0x20, 0x08, 0x20, 0x08, 0x20,
+        0x08, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
 
 somelimiticon = array.array('B',
-        [0x00, 0x00,
-         0x00, 0x00,
-         0x00, 0x00,
-         0x0f, 0xc0,
-         0x08, 0x00,
-         0x08, 0x00,
-         0x08, 0x00,
-         0x08, 0x00,
-         0x08, 0x00,
-         0x08, 0x00,
-         0x08, 0x00,
-         0x08, 0x00,
-         0x08, 0x00,
-         0x00, 0x00,
-         0x00, 0x00,
-         0x00, 0x00])
+       [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0f, 0xc0,
+        0x08, 0x00, 0x08, 0x00, 0x08, 0x00, 0x08, 0x00,
+        0x08, 0x00, 0x08, 0x00, 0x08, 0x00, 0x08, 0x00,
+        0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
 
 homeicon = array.array('B',
-        [0x2, 0x00,   0x02, 0x00,   0x02, 0x00,   0x0f, 0x80,
-        0x1e, 0x40,   0x3e, 0x20,   0x3e, 0x20,   0x3e, 0x20,
-        0xff, 0xf8,   0x23, 0xe0,   0x23, 0xe0,   0x23, 0xe0,
-        0x13, 0xc0,   0x0f, 0x80,   0x02, 0x00,   0x02, 0x00])
+       [0x02, 0x00, 0x02, 0x00, 0x02, 0x00, 0x0f, 0x80,
+        0x1e, 0x40, 0x3e, 0x20, 0x3e, 0x20, 0x3e, 0x20,
+        0xff, 0xf8, 0x23, 0xe0, 0x23, 0xe0, 0x23, 0xe0,
+        0x13, 0xc0, 0x0f, 0x80, 0x02, 0x00, 0x02, 0x00])
 
 limiticon = array.array('B',
-        [  0,   0,  128, 0,  134, 0,  140, 0,  152, 0,  176, 0,  255, 255,
-         255, 255,  176, 0,  152, 0,  140, 0,  134, 0,  128, 0,    0,   0,
-           0,   0,    0, 0])
+       [0x00, 0x00, 0x80, 0x00, 0x86, 0x00, 0x8c, 0x00,
+        0x98, 0x00, 0xb0, 0x00, 0xff, 0xff, 0xff, 0xff,
+        0xb0, 0x00, 0x98, 0x00, 0x8c, 0x00, 0x86, 0x00,
+        0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
+
+atspeedonicon = array.array('B',
+       [0x00, 0x00, 0x00, 0x00, 0x07, 0xc0, 0x08, 0x20,
+        0x11, 0x10, 0x25, 0x48, 0x23, 0x88, 0x2f, 0xe8,
+        0x23, 0x88, 0x25, 0x48, 0x11, 0x10, 0x08, 0x20,
+        0x07, 0xc0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]) 
+
+adaptivefeedicon = array.array('B',
+       [0x00, 0x00, 0x00, 0x00, 0x07, 0xc0, 0x08, 0x20,
+        0x14, 0x50, 0x24, 0x48, 0x27, 0xc8, 0x24, 0x48,
+        0x24, 0x48, 0x23, 0x88, 0x11, 0x10, 0x08, 0x20,
+        0x07, 0xc0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
+
 
 class GLCanon(Translated, ArcsToSegmentsMixin):
     lineno = -1
@@ -1024,12 +1014,20 @@ class GlCanonDraw:
             jnum = int(string.replace(" ","").split(":")[0])
             return jnum
 
-        if  (   ("Vel" in string)
+        if  (   ("Vc" in string)
+             or ("Fz" in string)
+             or ("a"  in string)
              or ("G5" in string)
              or ("TL" in string)
              or (len(string) == 0)
             ):
             return -1 # no icon display
+
+        if  ("Vel" in string):
+            return -7
+
+        if  ("n" in string):
+            return -8
 
         aletter = string.replace(" ","").split(":")[0]
         ans = 0
@@ -1061,6 +1059,8 @@ class GlCanonDraw:
     def show_icon_init(self):
         self.show_icon_home_list  = []
         self.show_icon_limit_list = []
+        self.show_icon_adaptivefeed = 0
+        self.show_icon_atspeedon    = 0
 
     def show_icon(self,idx,width,height,xorig,yorig,xmove,ymove,iconname):
         # only show icon once for idx
@@ -1075,6 +1075,16 @@ class GlCanonDraw:
             if idx in self.show_icon_limit_list: return
             self.show_icon_limit_list.append(idx)
             glBitmap(width,height,xorig,yorig,xmove,ymove,limiticon)
+            return
+        if iconname is "adaptivefeed":
+            if idx == self.show_icon_adaptivefeed: return
+            self.show_icon_adaptivefeed = idx
+            glBitmap(width,height,xorig,yorig,xmove,ymove,adaptivefeedicon)
+            return
+        if iconname is "atspeedon":
+            if idx == self.show_icon_atspeedon: return
+            self.show_icon_atspeedon = idx
+            glBitmap(width,height,xorig,yorig,xmove,ymove,atspeedonicon)
             return
 
     def redraw(self):
@@ -1379,6 +1389,10 @@ class GlCanonDraw:
                     glBitmap(13, 16, 0, 3, 17, 0, allhomedicon)
                 if (idx == -4 or idx == -6): # use atleastonelimit display
                     glBitmap(13, 16, 0, 3, 17, 0, somelimiticon)
+                if (idx == -7 and s.adaptive_feed_enabled): #
+                    self.show_icon(idx,13, 16, 0, 3, 17, 0, "adaptivefeed")
+                if (idx == -8 and hal.get_value("axisui.display-spindle-at-speed")): #
+                    self.show_icon(idx,13, 16, 0, 3, 17, 0, "atspeedon")
                 if (idx <= -2):
                     ypos -= linespace
                     continue
@@ -1413,6 +1427,10 @@ class GlCanonDraw:
                     glBitmap(13, 16, 0, 3, 17, 0, allhomedicon)
                 if (idx == -4 or idx == -6): # use atleastonelimit display
                     glBitmap(13, 16, 0, 3, 17, 0, somelimiticon)
+                if (idx == -7 and s.adaptive_feed_enabled): #
+                    self.show_icon(idx,13, 16, 0, 3, 17, 0, "adaptivefeed")
+                if (idx == -8 and hal.get_value("axisui.display-spindle-at-speed")): #
+                    self.show_icon(idx,13, 16, 0, 3, 17, 0, "atspeedon")
                 if (idx <= -2):
                     ypos -= linespace
                     continue
@@ -1528,6 +1546,8 @@ class GlCanonDraw:
             tlo_offset = self.to_internal_units(s.tool_offset)
             dtg = self.to_internal_linear_unit(s.distance_to_go)
             spd = self.to_internal_linear_unit(s.current_vel)
+            if s.adaptive_feed_enabled:
+                spd = math.copysign(spd, hal.get_value("motion.adaptive-feed"))
 
             if self.get_show_metric():
                 positions = self.from_internal_units(positions, 1)
