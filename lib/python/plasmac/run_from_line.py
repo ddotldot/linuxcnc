@@ -155,7 +155,7 @@ def run_from_line_get(file, startLine):
                     tmp = tmp[1:]
                 else:
                     break
-            pc = int(codes['a3'].split('m67e3q')[1])
+            pc = float(codes['a3'].split('m67e3q')[1])
             pc = pc if pc > 0 else 100
             codes['a3'] += ' (Velocity {}%)'.format(pc)
         if 'm68e3q' in line.replace(' ',''):
@@ -168,7 +168,7 @@ def run_from_line_get(file, startLine):
                     tmp = tmp[1:]
                 else:
                     break
-            pc = int(codes['a3'].split('m68e3q')[1])
+            pc = float(codes['a3'].split('m68e3q')[1])
             pc = pc if pc > 0 else 100
             codes['a3'] += ' (Velocity {}%)'.format(pc)
         # test if inside a subroutine
@@ -196,7 +196,7 @@ def run_from_line_get(file, startLine):
                         else:
                             break
                     oSub.append(os)
-        if 'f#<_hal[plasmac.cut-feed-rate]>' in line:
+        if '#<_hal[plasmac.cut-feed-rate]>' in line:
             codes['last']['feed'] = line.strip()
     # return an error line within a subroutine or if using cutter compensation
     if cutComp or oSub:

@@ -3,7 +3,7 @@
 
 == NAME
 
-svd-ps_vfd - HAL userspace component for SVD-P(S) VFDs
+svd-ps_vfd - HAL non-realtime component for SVD-P(S) VFDs
 
 
 == SYNOPSIS
@@ -170,3 +170,11 @@ PD-06 = 0 (Current resolution)
 *svd-ps_vfd.AI2* (float, out)::
 
         The VFD's AI2 register.
+
+== AUTHOR
+
+Tinic Uro
+
+== LICENSE
+
+GPL-2.0+

@@ -18,6 +18,7 @@
 #     install-docs: Install all enabled documentation into $(DESTDIR).
 #
 
+SHELL:=/bin/bash
 
 default: build-software
 
@@ -63,6 +64,13 @@ TRIVIAL_BUILD=no
 endif
 endif
 
+# Used to enable x86 only HAL parts
+ifeq ($(shell uname -m),i686)
+X86ARCH = true
+endif
+ifeq ($(shell uname -m),x86_64)
+X86ARCH = true
+endif
 
 # Beautify output
 # ---------------------------------------------------------------------------
@@ -309,7 +317,7 @@ config.h: config.h.in config.status
 
 INFILES = \
         ../scripts/linuxcnc ../scripts/realtime \
-	../scripts/linuxcnc_info \
+	../scripts/linuxcnc_info ../scripts/setup_designer \
 	../scripts/haltcl ../scripts/rtapi.conf Makefile.inc Makefile.modinc \
 	../tcl/linuxcnc.tcl ../scripts/halrun ../scripts/rip-environment \
 	../scripts/linuxcncmkdesktop \
@@ -364,6 +372,7 @@ SRCHEADERS := \
     emc/motion/simple_tp.h \
     emc/motion/state_tag.h \
     emc/motion/usrmotintf.h \
+    emc/motion/axis.h \
     emc/nml_intf/canon.hh \
     emc/nml_intf/canon_position.hh \
     emc/nml_intf/emctool.h \
@@ -677,8 +686,8 @@ install-dirs:
 		$(DESTDIR)$(datadir)/qtvcp/panels \
 		$(DESTDIR)$(datadir)/qtvcp/widgets_ui \
 		$(DESTDIR)$(datadir)/gmoccapy/icons \
-		$(DESTDIR)$(datadir)/glade3/catalogs \
-		$(DESTDIR)$(datadir)/glade3/pixmaps \
+		$(DESTDIR)$(datadir)/glade/catalogs \
+		$(DESTDIR)$(datadir)/glade/pixmaps/hicolor/22x22/actions \
 		$(DESTDIR)$(datadir)/gtksourceview-2.0/language-specs \
 		$(DESTDIR)$(datadir)/linuxcnc/stepconf \
 		$(DESTDIR)$(datadir)/linuxcnc/pncconf \
@@ -708,6 +717,7 @@ install-kernel-indep: install-dirs
 	$(EXE) $(filter-out ../bin/rtapi_app ../bin/linuxcnc_module_helper ../bin/pci_write ../bin/pci_read ../bin/test_rtapi_vsnprintf, $(filter ../bin/%,$(TARGETS))) $(DESTDIR)$(bindir)
 	$(EXE) ../scripts/linuxcnc $(DESTDIR)$(bindir)
 	$(EXE) ../scripts/linuxcnc_info $(DESTDIR)$(bindir)
+	$(EXE) ../scripts/setup_designer $(DESTDIR)$(bindir)
 	$(EXE) ../scripts/linuxcnc_var $(DESTDIR)$(bindir)
 	$(EXE) ../scripts/monitor-xhc-hb04 $(DESTDIR)$(bindir)
 	$(EXE) ../scripts/latency-test $(DESTDIR)$(bindir)
@@ -722,8 +732,9 @@ install-kernel-indep: install-dirs
 	$(EXE) ../bin/update_ini $(DESTDIR)$(bindir)
 	$(EXE) ../scripts/halreport $(DESTDIR)$(bindir)
 	$(FILE) $(filter ../lib/%.a ../lib/%.so.0,$(TARGETS)) $(DESTDIR)$(libdir)
-	cp --no-dereference $(filter ../lib/%.so, $(TARGETS)) $(DESTDIR)$(libdir)
+	cp --no-dereference $(wildcard ../lib/*.so) $(DESTDIR)$(libdir)
 	-ldconfig $(DESTDIR)$(libdir)
+	$(FILE) ../lib/linuxcnc/canterp.so $(DESTDIR)$(libdir)/linuxcnc
 	$(FILE) $(HEADERS) $(DESTDIR)$(includedir)/linuxcnc/
 	$(TREE) $(NC_FILES) $(DESTDIR)$(ncfilesdir)
 	$(EXE) ../nc_files/M101 $(DESTDIR)$(ncfilesdir)
@@ -750,8 +761,8 @@ install-kernel-indep: install-dirs
 	$(FILE) ../src/emc/usr_intf/pncconf/pncconf-help/*.txt $(DESTDIR)$(prefix)/share/linuxcnc/pncconf/pncconf-help
 	$(FILE) ../src/emc/usr_intf/pncconf/pncconf-help/*.png $(DESTDIR)$(prefix)/share/linuxcnc/pncconf/pncconf-help
 
-	$(FILE) ../lib/python/gladevcp/hal_python.xml $(DESTDIR)$(datadir)/glade3/catalogs/
-	$(FILE) ../lib/python/gladevcp/widget*.png  $(DESTDIR)$(datadir)/glade3/pixmaps/
+	$(FILE) ../lib/python/gladevcp/hal_python.xml $(DESTDIR)$(datadir)/glade/catalogs/
+	$(FILE) ../share/glade/pixmaps/hicolor/22x22/actions/widget*.png  $(DESTDIR)$(datadir)/glade/pixmaps/hicolor/22x22/actions/
 
 	$(FILE) ../share/gtksourceview-2.0/language-specs/*.lang  $(DESTDIR)$(datadir)/gtksourceview-2.0/language-specs/
 
@@ -783,15 +794,14 @@ install-python: install-dirs
 	$(FILE) ../lib/python/rs274/*.py $(DESTDIR)$(SITEPY)/rs274
 	$(FILE) ../lib/python/touchy/*.py $(DESTDIR)$(SITEPY)/touchy
 	$(FILE) ../lib/python/gscreen/*.py $(DESTDIR)$(SITEPY)/gscreen
-	$(FILE) ../lib/python/qtvcp/*.py ../lib/python/qtvcp/*.ui ../lib/python/qtvcp/*.txt $(DESTDIR)$(SITEPY)/qtvcp
+	$(FILE) ../lib/python/qtvcp/*.{py,ui,txt} $(DESTDIR)$(SITEPY)/qtvcp
 	$(FILE) ../lib/python/qtvcp/designer/*.txt $(DESTDIR)$(SITEPY)/qtvcp/designer
 	$(FILE) ../lib/python/qtvcp/widgets/*.py $(DESTDIR)$(SITEPY)/qtvcp/widgets
-	$(FILE) ../lib/python/qtvcp/widgets/widget_icons/*.png ../lib/python/qtvcp/widgets/widget_icons/*.gif $(DESTDIR)$(SITEPY)/qtvcp/widgets/widget_icons
+	$(FILE) ../lib/python/qtvcp/widgets/widget_icons/*.{png,gif} $(DESTDIR)$(SITEPY)/qtvcp/widgets/widget_icons
 	$(FILE) ../lib/python/qtvcp/plugins/*.py $(DESTDIR)$(SITEPY)/qtvcp/plugins
 	$(TREE) ../lib/python/qtvcp/lib/* $(DESTDIR)$(SITEPY)/qtvcp/lib
 	$(FILE) ../lib/python/gmoccapy/*.py $(DESTDIR)$(SITEPY)/gmoccapy
-	$(FILE) ../lib/python/gladevcp/*.py $(DESTDIR)$(SITEPY)/gladevcp
-	$(FILE) ../lib/python/gladevcp/*.glade $(DESTDIR)$(SITEPY)/gladevcp
+	$(FILE) ../lib/python/gladevcp/*.{py,png,glade} $(DESTDIR)$(SITEPY)/gladevcp
 	$(FILE) ../lib/python/stepconf/*.py $(DESTDIR)$(SITEPY)/stepconf
 	$(FILE) ../lib/python/pncconf/*.py $(DESTDIR)$(SITEPY)/pncconf
 	$(FILE) ../lib/python/pyui/*.py $(DESTDIR)$(SITEPY)/pyui
@@ -801,6 +811,7 @@ install-python: install-dirs
 	$(EXE) ../bin/pyui $(DESTDIR)$(bindir)
 	$(EXE) ../bin/hal_input $(DESTDIR)$(bindir)
 	$(EXE) ../bin/mitsub_vfd $(DESTDIR)$(bindir)
+	$(EXE) ../bin/mqtt-publisher $(DESTDIR)$(bindir)
 	$(EXE) ../bin/z_level_compensation $(DESTDIR)$(bindir)
 	$(EXE) ../bin/pmx485 $(DESTDIR)$(bindir)
 	$(EXE) ../bin/sim-torch $(DESTDIR)$(bindir)
@@ -823,7 +834,7 @@ install-python: install-dirs
 	$(EXE) $(patsubst %.py,../bin/%,$(VISMACH_PY)) $(DESTDIR)$(bindir)
 	$(EXE) $(patsubst %.py,../bin/%,$(QTPLASMAC_PY)) $(DESTDIR)$(bindir)
 	$(FILE) ../share/linuxcnc/linuxcnc-wizard.gif $(DESTDIR)$(prefix)/share/linuxcnc
-	$(FILE) ../share/axis/images/*.png ../share/axis/images/*.gif ../share/axis/images/*.xbm ../share/axis/images/*.ngc $(DESTDIR)$(datadir)/axis/images
+	$(FILE) ../share/axis/images/*.{png,gif,xbm,ngc} $(DESTDIR)$(datadir)/axis/images
 	$(FILE) ../share/axis/tcl/*.tcl $(DESTDIR)$(datadir)/axis/tcl
 	$(FILE) ../share/gscreen/images/*.gif $(DESTDIR)$(datadir)/gscreen/images
 	$(TREE) ../share/gscreen/skins/* $(DESTDIR)$(datadir)/gscreen/skins
@@ -911,6 +922,8 @@ obj-$(CONFIG_DEBOUNCE) += debounce.o
 debounce-objs := hal/components/debounce.o $(MATHSTUB)
 obj-$(CONFIG_ENCODER) += encoder.o
 encoder-objs := hal/components/encoder.o $(MATHSTUB)
+obj-$(CONFIG_ENUM) += enum.o
+enum-objs := hal/components/enum.o $(MATHSTUB)
 obj-$(CONFIG_COUNTER) += counter.o
 counter-objs := hal/components/counter.o $(MATHSTUB)
 obj-$(CONFIG_ENCODER_RATIO) += encoder_ratio.o
@@ -949,6 +962,10 @@ sampler-objs := hal/components/sampler.o $(MATHSTUB)
 # Subdirectory: hal/drivers
 obj-$(CONFIG_HAL_PARPORT) += hal_parport.o
 hal_parport-objs := hal/drivers/hal_parport.o $(MATHSTUB)
+ifeq ($(X86ARCH),true)
+obj-$(CONFIG_HAL_SPEAKER) += hal_speaker.o
+hal_speaker-objs := hal/drivers/hal_speaker.o $(MATHSTUB)
+endif
 ifneq ($(BUILD_SYS),uspace)
 obj-$(CONFIG_PCI_8255) += pci_8255.o
 pci_8255-objs := hal/drivers/pci_8255.o
@@ -964,8 +981,6 @@ obj-$(CONFIG_HAL_MOTENC) += hal_motenc.o
 hal_motenc-objs := hal/drivers/hal_motenc.o $(MATHSTUB)
 obj-$(CONFIG_HAL_AX521H) += hal_ax5214h.o
 hal_ax5214h-objs := hal/drivers/hal_ax5214h.o $(MATHSTUB)
-obj-$(CONFIG_HAL_SPEAKER) += hal_speaker.o
-hal_speaker-objs := hal/drivers/hal_speaker.o $(MATHSTUB)
 obj-$(CONFIG_HAL_SKELETON) += hal_skeleton.o
 hal_skeleton-objs := hal/drivers/hal_skeleton.o $(MATHSTUB)
 obj-$(CONFIG_OPTO_AC5) += opto_ac5.o
@@ -1216,6 +1231,7 @@ modules: $(patsubst %.o,../rtlib/%.so,$(obj-m))
 	$(Q)objcopy -j .rtapi_export -O binary objects/$*.tmp objects/$*.sym
 	$(Q)(echo '{ global : '; tr -s '\0' < objects/$*.sym | xargs -r0 printf '%s;\n' | grep .; echo 'local : * ; };') > objects/$*.ver
 	$(Q)$(CC) -shared -Bsymbolic $(LDFLAGS) -Wl,--version-script,objects/$*.ver -o $@ $^ -lm
+	$(Q)chmod -x $@
 
 RTFLAGS += -fno-strict-aliasing -fwrapv
 
@@ -1253,6 +1269,7 @@ endif
 ../rtlib/boss_plc$(MODULE_EXT): $(addprefix objects/rt,$(boss_plc-objs))
 ../rtlib/debounce$(MODULE_EXT): $(addprefix objects/rt,$(debounce-objs))
 ../rtlib/encoder$(MODULE_EXT): $(addprefix objects/rt,$(encoder-objs))
+../rtlib/enum$(MODULE_EXT): $(addprefix objects/rt,$(enum-objs))
 ../rtlib/counter$(MODULE_EXT): $(addprefix objects/rt,$(counter-objs))
 ../rtlib/encoder_ratio$(MODULE_EXT): $(addprefix objects/rt,$(encoder_ratio-objs))
 ../rtlib/stepgen$(MODULE_EXT): $(addprefix objects/rt,$(stepgen-objs))
@@ -1284,7 +1301,9 @@ endif
 ../rtlib/hal_ax5214h$(MODULE_EXT): $(addprefix objects/rt,$(hal_ax5214h-objs))
 ../rtlib/hal_ppmc$(MODULE_EXT): $(addprefix objects/rt,$(hal_ppmc-objs))
 ../rtlib/hal_skeleton$(MODULE_EXT): $(addprefix objects/rt,$(hal_skeleton-objs))
+ifeq ($(X86ARCH),true)
 ../rtlib/hal_speaker$(MODULE_EXT): $(addprefix objects/rt,$(hal_speaker-objs))
+endif
 ../rtlib/opto_ac5$(MODULE_EXT): $(addprefix objects/rt,$(opto_ac5-objs))
 ../rtlib/scope_rt$(MODULE_EXT): $(addprefix objects/rt,$(scope_rt-objs))
 ../rtlib/hal_lib$(MODULE_EXT): $(addprefix objects/rt,$(hal_lib-objs))

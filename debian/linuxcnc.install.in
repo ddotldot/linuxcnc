@@ -57,6 +57,7 @@ usr/bin/melfagui
 usr/bin/milltask
 usr/bin/millturngui
 usr/bin/mitsub_vfd
+usr/bin/mqtt-publisher
 usr/bin/z_level_compensation
 usr/bin/monitor-xhc-hb04
 usr/bin/motion-logger
@@ -85,6 +86,7 @@ usr/bin/scaragui
 usr/bin/schedrmt
 usr/bin/scorbot-er-3
 usr/bin/sendkeys
+usr/bin/setup_designer
 usr/bin/shuttle
 usr/bin/sim-torch
 usr/bin/sim_pin
@@ -104,6 +106,7 @@ usr/bin/wj200_vfd
 usr/bin/xhc-hb04
 usr/bin/xhc-hb04-accels
 usr/bin/xhc-whb04b-6
+usr/bin/xyzab-tdr-gui
 usr/bin/xyzac-trt-gui
 usr/bin/xyzbc-trt-gui
 
@@ -113,7 +116,7 @@ usr/lib/python3
 usr/lib/tcltk
 
 usr/share/axis
-usr/share/glade3
+usr/share/glade
 usr/share/gmoccapy
 usr/share/gscreen
 usr/share/gtksourceview-2.0
@@ -158,7 +161,6 @@ usr/share/man/man1/hal-histogram.1
 usr/share/man/man1/hal_input.1
 usr/share/man/man1/hal_manualtoolchange.1
 usr/share/man/man1/halmeter.1
-usr/share/man/man1/hal_parport.1
 usr/share/man/man1/halreport.1
 usr/share/man/man1/halrmt.1
 usr/share/man/man1/halrun.1
@@ -200,6 +202,7 @@ usr/share/man/man1/mitsub_vfd.1
 usr/share/man/man1/monitor-xhc-hb04.1
 usr/share/man/man1/motion-logger.1
 usr/share/man/man1/moveoff_gui.1
+usr/share/man/man1/mqtt-publisher.1
 usr/share/man/man1/ngcgui.1
 usr/share/man/man1/panelui.1
 usr/share/man/man1/pi500_vfd.1

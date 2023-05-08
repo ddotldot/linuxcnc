@@ -1,4 +1,4 @@
-import os
+import os, time
 from PyQt5 import QtCore, QtWidgets, QtGui
 from qtvcp.widgets.gcode_editor import GcodeEditor as GCODE
 from qtvcp.widgets.mdi_line import MDILine as MDI_WIDGET
@@ -6,6 +6,7 @@ from qtvcp.widgets.tool_offsetview import ToolOffsetView as TOOL_TABLE
 from qtvcp.widgets.origin_offsetview import OriginOffsetView as OFFSET_VIEW
 from qtvcp.widgets.stylesheeteditor import StyleSheetEditor as SSE
 from qtvcp.widgets.file_manager import FileManager as FM
+from qtvcp.lib.qt_ngcgui.ngcgui import NgcGui
 from qtvcp.lib.writer import writer
 from qtvcp.lib.keybindings import Keylookup
 from qtvcp.lib.gcodes import GCodes
@@ -36,6 +37,7 @@ TAB_GCODES = 7
 TAB_SETUP = 8
 TAB_SETTINGS = 9
 TAB_UTILITIES = 10
+TAB_USER = 11
 
 # constants for (left side) stacked widget
 PAGE_UNCHANGED = -1
@@ -54,10 +56,18 @@ class HandlerClass:
         self.h = halcomp
         self.w = widgets
         self.gcodes = GCodes(widgets)
-        self.valid = QtGui.QDoubleValidator(-999.999, 999.999, 3)
+        # This validator precludes using comma as a decimal
+        self.valid = QtGui.QRegExpValidator(QtCore.QRegExp('-?[0-9]{0,6}[.][0-9]{0,3}'))
+        self.KEYBIND = KEYBIND
         KEYBIND.add_call('Key_F11','on_keycall_F11')
         KEYBIND.add_call('Key_F12','on_keycall_F12')
         KEYBIND.add_call('Key_Pause', 'on_keycall_pause')
+        KEYBIND.add_call('Key_Any', 'on_keycall_pause')
+
+        KEYBIND.add_call('Key_Period','on_keycall_jograte',1)
+        KEYBIND.add_call('Key_Comma','on_keycall_jograte',0)
+        KEYBIND.add_call('Key_Greater','on_keycall_angular_jograte',1)
+        KEYBIND.add_call('Key_Less','on_keycall_angular_jograte',0)
 
         # some global variables
         self.probe = None
@@ -81,12 +91,13 @@ class HandlerClass:
         self.onoff_list = ["frame_program", "frame_tool", "frame_dro", "frame_override", "frame_status"]
         self.auto_list = ["chk_eoffsets", "cmb_gcode_history"]
         self.axis_a_list = ["label_axis_a", "dro_axis_a", "action_zero_a", "axistoolbutton_a",
-                            "action_home_a", "widget_jog_angular", "widget_increments_angular",
+                            "dro_button_stack_a", "widget_jog_angular", "widget_increments_angular",
                             "a_plus_jogbutton", "a_minus_jogbutton"]
         self.button_response_list = ["btn_start", "btn_home_all", "btn_home_x", "btn_home_y",
                             "btn_home_z", "action_home_a", "btn_reload_file", "macrobutton0", "macrobutton1",
                             "macrobutton2", "macrobutton3", "macrobutton4", "macrobutton5", "macrobutton6",
                             "macrobutton7", "macrobutton8", "macrobutton9"]
+        self.statusbar_reset_time = 10000 # ten seconds
 
         STATUS.connect('general', self.dialog_return)
         STATUS.connect('state-on', lambda w: self.enable_onoff(True))
@@ -110,6 +121,7 @@ class HandlerClass:
         STATUS.connect('command-stopped', lambda w: self.stop_timer())
         STATUS.connect('progress', lambda w,p,t: self.updateProgress(p,t))
         STATUS.connect('override-limits-changed', lambda w, state, data: self._check_override_limits(state, data))
+        STATUS.connect('graphics-gcode-properties', lambda w, d: self.update_gcode_properties(d))
 
         self.html = """<html>
 <head>
@@ -119,17 +131,22 @@ class HandlerClass:
 <h1>Setup Tab</h1>
 <p>If you select a file with .html as a file ending, it will be shown here..</p>
 <li><a href="http://linuxcnc.org/docs/devel/html/">Documents online</a></li>
-<li><a href="file://">Local files</a></li>
+<li><a href="file://%s">Local files</a></li>
 <img src="file://%s" alt="lcnc_swoop" />
 <hr />
 </body>
 </html>
-""" %(os.path.join(paths.IMAGEDIR,'lcnc_swoop.png'))
+""" %(  os.path.expanduser('~/linuxcnc'),
+        os.path.join(paths.IMAGEDIR,'lcnc_swoop.png'))
 
 
     def class_patch__(self):
+        # override file manager load button
         self.old_fman = FM.load
         FM.load = self.load_code
+
+        # override NGCGui path check
+        NgcGui.check_linuxcnc_paths_fail = self.check_linuxcnc_paths_fail_override
 
     def initialized__(self):
         self.init_pins()
@@ -220,7 +237,6 @@ class HandlerClass:
 
         # load the NgcGui widget into the utilities tab
         # then move (warp) the info tab from it to the left tab widget
-        from qtvcp.lib.qt_ngcgui.ngcgui import NgcGui
         self.ngcgui = NgcGui()
         self.w.layout_ngcgui.addWidget(self.ngcgui)
         self.ngcgui.warp_info_frame(self.w.ngcGuiLeftLayout)
@@ -238,6 +254,8 @@ class HandlerClass:
         pin.value_changed.connect(self.spindle_fault_changed)
         pin = QHAL.newpin("spindle-modbus-errors", QHAL.HAL_U32, QHAL.HAL_IN)
         pin.value_changed.connect(self.mb_errors_changed)
+        pin = QHAL.newpin("spindle-modbus-connection", QHAL.HAL_BIT, QHAL.HAL_IN)
+        pin.value_changed.connect(self.mb_connection_changed)
         QHAL.newpin("spindle-inhibit", QHAL.HAL_BIT, QHAL.HAL_OUT)
         # external offset control pins
         QHAL.newpin("eoffset-enable", QHAL.HAL_BIT, QHAL.HAL_OUT)
@@ -341,6 +359,10 @@ class HandlerClass:
         #set up gcode list
         self.gcodes.setup_list()
 
+        # hide user tab button if no user tabs
+        if self.w.stackedWidget_mainTab.count() == 11:
+            self.w.btn_user.hide()
+
     def init_probe(self):
         probe = INFO.get_error_safe_setting('PROBE', 'USE_PROBE', 'none').lower()
         if probe == 'versaprobe':
@@ -437,7 +459,7 @@ class HandlerClass:
     def spindle_pwr_changed(self, data):
         # this calculation assumes the voltage is line to neutral
         # and that the synchronous motor spindle has a power factor of 0.9
-        power = self.h['spindle-volts'] * self.h['spindle-amps'] * 2.7 # 3 x V x I x PF
+        power = self.h['spindle-volts'] * self.h['spindle-amps'] * 0.9 # Watts = V x I x PF
         amps = "{:1.1f}".format(self.h['spindle-amps'])
         pwr = "{:1.1f}".format(power)
         self.w.lbl_spindle_amps.setText(amps)
@@ -450,6 +472,12 @@ class HandlerClass:
     def mb_errors_changed(self, data):
         errors = self.h['spindle-modbus-errors']
         self.w.lbl_mb_errors.setText(str(errors))
+
+    def mb_connection_changed(self, data):
+        if data:
+            self.w.lbl_mb_errors.setStyleSheet('')
+        else:
+            self.w.lbl_mb_errors.setStyleSheet('''background-color:rgb(202, 0, 0);''')
 
     def dialog_return(self, w, message):
         rtn = message.get('RETURN')
@@ -569,10 +597,15 @@ class HandlerClass:
     # main button bar
     def main_tab_changed(self, btn):
         index = btn.property("index")
+
+        if index == TAB_USER:
+            pass
         # if you select the tab showing, force the DRO to show
-        if index == self.w.main_tab_widget.currentIndex():
+        elif index == self.w.stackedWidget_mainTab.currentIndex():
             self.w.stackedWidget_dro.setCurrentIndex(0)
+
         if index is None: return
+
         # adjust the stack widgets depending on modes
         self.adjust_stacked_widgets(index)
 
@@ -596,14 +629,12 @@ class HandlerClass:
         if not STATUS.is_auto_mode():
             self.add_status("Must be in AUTO mode to run a program", WARNING)
             return
-        if self.w.main_tab_widget.currentIndex() != 0:
+        if self.w.stackedWidget_mainTab.currentIndex() != 0:
             self.add_status("Switch view mode to MAIN", WARNING)
             return
         if STATUS.is_auto_running():
             self.add_status("Program is already running", WARNING)
             return
-        self.run_time = 0
-        self.w.lbl_runtime.setText("00:00:00")
         if self.start_line <= 1:
             ACTION.RUN(self.start_line)
         else:
@@ -611,8 +642,9 @@ class HandlerClass:
             info = '<b>Running From Line: {} <\b>'.format(self.start_line)
             mess = {'NAME':'RUNFROMLINE', 'TITLE':'Preset Dialog', 'ID':'_RUNFROMLINE', 'MESSAGE':info, 'LINE':self.start_line}
             ACTION.CALL_DIALOG(mess)
+
+        self.start_timer()
         self.add_status("Started program from line {}".format(self.start_line))
-        self.timer_on = True
 
     def btn_reload_file_clicked(self):
         if self.last_loaded_program:
@@ -858,9 +890,20 @@ class HandlerClass:
         else:
             self.w.stackedWidget.setCurrentIndex(PAGE_GCODE)
 
+    def btn_about_clicked(self):
+        info = ACTION.GET_ABOUT_INFO()
+        self.w.aboutDialog_.showdialog()
+
+    def btn_zoomin_clicked(self):
+        self.w.gcode_viewer.editor.zoomIn()
+    def btn_zoomout_clicked(self):
+        self.w.gcode_viewer.editor.zoomOut()
+
     #####################
     # GENERAL FUNCTIONS #
     #####################
+
+    # file manager widget overridden function
     def load_code(self, fname):
         if fname is None: return
         filename, file_extension = os.path.splitext(fname)
@@ -904,7 +947,7 @@ class HandlerClass:
             try:
                 self.w.web_view.load(QtCore.QUrl.fromLocalFile(fname))
                 self.add_status("Loaded HTML file : {}".format(fname))
-                self.w.main_tab_widget.setCurrentIndex(TAB_SETUP)
+                self.w.stackedWidget_mainTab.setCurrentIndex(TAB_SETUP)
                 self.w.stackedWidget.setCurrentIndex(0)
                 self.w.btn_setup.setChecked(True)
                 self.w.jogging_frame.hide()
@@ -914,6 +957,47 @@ class HandlerClass:
             if os.path.exists(fname):
                 self.PDFView.loadView(fname)
                 self.add_status("Loaded PDF file : {}".format(fname))
+
+    # NGCGui library overridden function
+    # adds an error message to status
+    def check_linuxcnc_paths_fail_override(self, fname):
+        self.add_status("NGCGUI Path {} not in linuxcnc's SUBROUTINE_PATH INI entry".format(fname), CRITICAL)
+        return ''
+
+    def update_gcode_properties(self, props ):
+        # substitute nice looking text:
+        property_names = {
+            'name': "Name:", 'size': "Size:",
+    '       tools': "Tool order:", 'g0': "Rapid distance:",
+            'g1': "Feed distance:", 'g': "Total distance:",
+            'run': "Run time:",'machine_unit_sys':"Machine Unit System:",
+            'x': "X bounds:",'x_zero_rxy':'X @ Zero Rotation:',
+            'y': "Y bounds:",'y_zero_rxy':'Y @ Zero Rotation:',
+            'z': "Z bounds:",'z_zero_rxy':'Z @ Zero Rotation:',
+            'a': "A bounds:", 'b': "B bounds:",
+            'c': "C bounds:",'toollist':'Tool Change List:',
+            'gcode_units':"Gcode Units:"
+        }
+
+        smallmess = mess = ''
+        if props:
+            for i in props:
+                smallmess += '<b>%s</b>: %s<br>' % (property_names.get(i), props[i])
+                mess += '<span style=" font-size:18pt; font-weight:600; color:black;">%s </span>\
+<span style=" font-size:18pt; font-weight:600; color:#aa0000;">%s</span>\
+<br>'% (property_names.get(i), props[i])
+
+        # put the details into the properties page
+        self.w.textedit_properties.setText(mess)
+        return
+        # pop a dialog of the properties
+        msg = QtWidgets.QMessageBox()
+        msg.setIcon(QtWidgets.QMessageBox.Information)
+        msg.setText(smallmess)
+        msg.setWindowTitle("Gcode Properties")
+        msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        msg.show()
+        retval = msg.exec_()
 
     def disable_spindle_pause(self):
         self.h['eoffset-count'] = 0
@@ -941,6 +1025,7 @@ class HandlerClass:
             self.add_status("Touchoff routine is already running", CRITICAL)
 
     def kb_jog(self, state, joint, direction, fast = False, linear = True):
+        ACTION.SET_MANUAL_MODE()
         if not STATUS.is_man_mode() or not STATUS.machine_is_on():
             self.add_status('Machine must be ON and in Manual mode to jog', CRITICAL)
             return
@@ -971,15 +1056,12 @@ class HandlerClass:
         for widget in self.auto_list:
             self.w[widget].setEnabled(state)
         if state is True:
-            if self.w.main_tab_widget.currentIndex() != TAB_SETUP:
-                self.w.jogging_frame.show()
+            if self.w.stackedWidget_mainTab.currentIndex() != TAB_SETUP:
+                self.adjust_stacked_widgets(self.w.stackedWidget_mainTab.currentIndex())
         else:
-            if self.w.main_tab_widget.currentIndex() != TAB_PROBE:
-                self.w.jogging_frame.hide()
+            if self.w.stackedWidget_mainTab.currentIndex() != TAB_PROBE:
                 self.w.btn_main.setChecked(True)
                 self.adjust_stacked_widgets(TAB_MAIN)
-                self.w.stackedWidget.setCurrentIndex(0)
-                self.w.stackedWidget_dro.setCurrentIndex(0)
 
     def enable_onoff(self, state):
         if state:
@@ -1024,14 +1106,22 @@ class HandlerClass:
             self.w.lbl_spindle_set.style().polish(self.w.lbl_spindle_set)
 
     def update_runtimer(self):
-        if self.timer_on is False or STATUS.is_auto_paused(): return
-        self.time_tenths += 1
-        if self.time_tenths == 10:
-            self.time_tenths = 0
-            self.run_time += 1
-            hours, remainder = divmod(self.run_time, 3600)
-            minutes, seconds = divmod(remainder, 60)
-            self.w.lbl_runtime.setText("{:02d}:{:02d}:{:02d}".format(hours, minutes, seconds))
+        if not self.timer_on or STATUS.is_auto_paused():
+            return
+
+        tick = time.time()
+        elapsed_time = tick - self.timer_tick
+        self.run_time += elapsed_time
+        self.timer_tick = tick
+
+        hours, remainder = divmod(int(self.run_time), 3600)
+        minutes, seconds = divmod(remainder, 60)
+        self.w.lbl_runtime.setText("{:02d}:{:02d}:{:02d}".format(hours, minutes, seconds))
+
+    def start_timer(self):
+        self.run_time = 0
+        self.timer_on = True
+        self.timer_tick = time.time()
 
     def stop_timer(self):
         self.timer_on = False
@@ -1043,28 +1133,38 @@ class HandlerClass:
             self.w.web_view.load(QtCore.QUrl.fromLocalFile(self.default_setup))
         else:
             self.w.web_view.setHtml(self.html)
-        #self.w.web_view.page().triggerAction(QWebEnginePage.Back)
 
     def forward(self):
         self.w.web_view.load(QtCore.QUrl.fromLocalFile(self.docs))
-        #self.w.web_view.page().triggerAction(QWebEnginePage.Forward)
 
     def writer(self):
         WRITER.show()
+
+    def endcolor(self):
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.set_style_default)
+        self.timer.start(self.statusbar_reset_time)
 
     # change Status bar text color
     def set_style_default(self):
         self.w.lineEdit_statusbar.setStyleSheet("background-color: rgb(252, 252, 252);color: rgb(0,0,0)")  #default white
     def set_style_warning(self):
-        self.w.lineEdit_statusbar.setStyleSheet("background-color: rgb(242, 246, 103);color: rgb(0,0,0)")  #yelow
+        self.w.lineEdit_statusbar.setStyleSheet("background-color: rgb(242, 246, 103);color: rgb(0,0,0)")  #yellow
+        self.endcolor()
     def set_style_critical(self):
         self.w.lineEdit_statusbar.setStyleSheet("background-color: rgb(255, 144, 0);color: rgb(0,0,0)")   #orange
+        self.endcolor()
 
     def adjust_stacked_widgets(self,requestedIndex):
         IGNORE = -1
         SHOW_DRO = 0
-        mode = STATUS.get_current_mode()
-        if mode == STATUS.AUTO:
+        premode = ['','','Auto','MDI'][STATUS.get_previous_mode()]
+        mode = ['','','Auto','MDI'][STATUS.get_current_mode()]
+        currentIndex = self.w.stackedWidget_mainTab.currentIndex()
+        indexList = ['main','file','offsets','tool','status','probe','cam',
+                    'gcode','setup','settings','util','user']
+
+        if mode == 'Auto':
             seq = {TAB_MAIN: (TAB_MAIN,PAGE_GCODE,False,SHOW_DRO),
                     TAB_FILE: (TAB_MAIN,PAGE_GCODE,False,SHOW_DRO),
                     TAB_OFFSETS: (TAB_MAIN,PAGE_GCODE,False,SHOW_DRO),
@@ -1075,7 +1175,8 @@ class HandlerClass:
                     TAB_GCODES: (requestedIndex,PAGE_UNCHANGED,False,SHOW_DRO),
                     TAB_SETUP: (requestedIndex,PAGE_UNCHANGED,False,SHOW_DRO),
                     TAB_SETTINGS: (TAB_MAIN,PAGE_GCODE,False,SHOW_DRO),
-                    TAB_UTILITIES: (TAB_MAIN,PAGE_GCODE,False,SHOW_DRO) }
+                    TAB_UTILITIES: (TAB_MAIN,PAGE_GCODE,False,SHOW_DRO),
+                    TAB_USER: (requestedIndex,PAGE_UNCHANGED,IGNORE,IGNORE) }
         else:
             seq = {TAB_MAIN: (requestedIndex,PAGE_GCODE,True,SHOW_DRO),
                     TAB_FILE: (requestedIndex,PAGE_FILE,True,IGNORE),
@@ -1087,9 +1188,11 @@ class HandlerClass:
                     TAB_GCODES: (requestedIndex,PAGE_UNCHANGED,False,SHOW_DRO),
                     TAB_SETUP: (requestedIndex,PAGE_UNCHANGED,False,IGNORE),
                     TAB_SETTINGS: (requestedIndex,PAGE_UNCHANGED,False,SHOW_DRO),
-                    TAB_UTILITIES: (requestedIndex,PAGE_UNCHANGED,True,SHOW_DRO) }
+                    TAB_UTILITIES: (requestedIndex,PAGE_UNCHANGED,True,SHOW_DRO),
+                    TAB_USER: (requestedIndex,PAGE_UNCHANGED,IGNORE,IGNORE) }
 
         rtn =  seq.get(requestedIndex)
+
         # if not found (None) use defaults
         if rtn is None:
             main_index = requestedIndex
@@ -1099,7 +1202,23 @@ class HandlerClass:
         else:
             main_index,stacked_index,show_JogControls,show_dro = rtn
 
-        if show_JogControls:
+        # user tab button covers multiple tabs so adjust name
+        # for extra user tabs
+        if currentIndex >= len(indexList):
+            tabId = 'user{}'.format(currentIndex - len(indexList))
+        else:
+            tabId = indexList[currentIndex]
+        name = 'splitterSettings-{}{}'.format(tabId,premode)
+        #print ('CURRENT:',name)
+        # record current qsplitter settings
+        self.w.settings.beginGroup("qtdragon-{}".format(self.w.splitter_h.objectName()))
+        self.w.settings.setValue(name, QtCore.QVariant(self.w.splitter_h.saveState().data()))
+        self.w.settings.endGroup()
+
+        # ignore, show or hide jog controls
+        if show_JogControls == IGNORE:
+            pass
+        elif show_JogControls:
             self.w.jogging_frame.show()
         else:
             self.w.jogging_frame.hide()
@@ -1115,19 +1234,55 @@ class HandlerClass:
                 self.w.stackedWidget.setCurrentIndex(PAGE_NGCGUI)
             else:
                 self.w.stackedWidget.setCurrentIndex(PAGE_GCODE)
-        # adjust the stacked widget
+
+        # adjust the stacked widget (left side MDI/Gcode stack)
         if stacked_index > PAGE_UNCHANGED:
             self.w.stackedWidget.setCurrentIndex(stacked_index)
 
-        # set main tab to adjusted index
-        self.w.main_tab_widget.setCurrentIndex(main_index)
+        # toggle home/tool offsets buttons in DRO section
+        if main_index == TAB_TOOL:
+            num = 1
+        else:
+            num = 0
+        for i in INFO.AVAILABLE_AXES:
+            self.w['dro_button_stack_%s'%i.lower()].setCurrentIndex(num)
 
-        # if indexes don't match then request is dusallowed
+        # user tabs button cycles between all user tabs
+        main_current = self.w.stackedWidget_mainTab.currentIndex()
+        if main_index == TAB_USER and main_current >= TAB_USER:
+                next = main_current +1
+                if next == self.w.stackedWidget_mainTab.count():
+                    next = TAB_USER
+                self.w.stackedWidget_mainTab.setCurrentIndex(next)
+        else:
+            # set main tab to adjusted index
+            self.w.stackedWidget_mainTab.setCurrentIndex(main_index)
+
+        # if indexes don't match then request is disallowed
         # give a warning and reset the button check
         if main_index != requestedIndex and not main_index in(TAB_CAMERA,TAB_GCODES,TAB_SETUP):
             self.add_status("Cannot switch pages while in AUTO mode", WARNING)
-            self.w.main_tab_widget.setCurrentIndex(0)
+            self.w.stackedWidget_mainTab.setCurrentIndex(0)
             self.w.btn_main.setChecked(True)
+
+        # user tab button covers multiple tabs
+        # adjust name depending in what user tab is showing
+        cur = self.w.stackedWidget_mainTab.currentIndex()
+        if cur >= len(indexList):
+            tabId = 'user{}'.format(cur - len(indexList))
+        else:
+            tabId = indexList[cur]
+        name = 'splitterSettings-{}{}'.format(tabId,mode)
+        #print ('NOW:',name)
+        # restore new qsplitter setting
+        self.w.settings.beginGroup("qtdragon-{}".format(self.w.splitter_h.objectName()))
+        splitterSetting = self.w.settings.value(name)
+        self.w.settings.endGroup()
+        if not splitterSetting is None:
+            try:
+                self.w.splitter_h.restoreState(QtCore.QByteArray(splitterSetting))
+            except Exception as e:
+                print(e)
 
     #####################
     # KEY BINDING CALLS #
@@ -1152,6 +1307,20 @@ class HandlerClass:
     def on_keycall_pause(self,event,state,shift,cntrl):
         if state and STATUS.is_auto_mode() and self.use_keyboard():
             ACTION.PAUSE()
+
+    def on_keycall_jograte(self,event,state,shift,cntrl,value):
+        if state and self.use_keyboard():
+            if value == 1:
+                ACTION.SET_JOG_RATE_FASTER()
+            else:
+                ACTION.SET_JOG_RATE_SLOWER()
+
+    def on_keycall_angular_jograte(self,event,state,shift,cntrl,value):
+        if state and self.use_keyboard():
+            if value == 1:
+                ACTION.SET_JOG_RATE_ANGULAR_FASTER()
+            else:
+                ACTION.SET_JOG_RATE_ANGULAR_SLOWER()
 
     def on_keycall_XPOS(self,event,state,shift,cntrl):
         if self.use_keyboard():

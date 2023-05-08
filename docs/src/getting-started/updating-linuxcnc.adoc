@@ -19,12 +19,12 @@ updates. If you don't have an internet connection to your PC see
 
 == Upgrade to the new version
 
-This section describes how to upgrade LinuxCNC from version 2.7 to the
-new 2.8.0 version.  It assumes that you have an existing 2.7 install that you
+This section describes how to upgrade LinuxCNC from version 2.8 to the
+new 2.9.0 version.  It assumes that you have an existing 2.8 install that you
 want to update.
 
-To upgrade LinuxCNC from a version older than 2.7, you have to first
-http://linuxcnc.org/docs/2.7/html/getting-started/updating-linuxcnc.html[upgrade your old install to 2.7],
+To upgrade LinuxCNC from a version older than 2.8, you have to first
+https://linuxcnc.org/docs/2.8/html/getting-started/updating-linuxcnc.html[upgrade your old install to 2.8],
 then follow these instructions to upgrade to the new version.
 
 If you do not have an old version of LinuxCNC to upgrade, then you're
@@ -39,9 +39,9 @@ as these releases were EOL in 2017 and 2018 respectively.
 If you are running on Ubuntu Lucid then you will have to do this, as
 Lucid is no longer supported by LinuxCNC (it was EOL in 2013).
 
-To upgrade major versions like 2.7 to 2.8 when you have a network connection at
-the machine you need to disable the old linuxcnc.org apt sources in the file /etc/apt/sources.list  and add a new
-linuxcnc.org apt source for 2.7, then upgrade LinuxCNC.
+To upgrade major versions like 2.8 to 2.9 when you have a network connection at
+the machine you need to disable the old linuxcnc.org apt sources in the file /etc/apt/sources.list and add a new
+linuxcnc.org apt source for 2.9, then upgrade LinuxCNC.
 
 The details will depend on which platform you're running on.  Open a
 <<faq:terminal,terminal>> then type `lsb_release -ic` to find this information
@@ -102,13 +102,13 @@ realtime. See below for the LinuxCNC version to install.
 [options="header"]
 |===
 | Platform                | apt source line
-| Debian Stretch          | `deb http://linuxcnc.org stretch base 2.8-rtpreempt`
-| Debian Wheezy           | `deb http://linuxcnc.org wheezy base 2.8-rt`
-| Ubuntu Precise          | `deb http://linuxcnc.org precise base 2.8-rt`
-| Debian Jessie - preempt | `deb http://linuxcnc.org jessie base 2.8-rtpreempt`
-| Debian Jessie - RTAI    | `deb http://linuxcnc.org jessie base 2.8-rt`
-| Debian Buster - preempt | `deb http://linuxcnc.org buster base 2.8-rtpreempt`
-| Debian Buster - RTAI    | `deb http://linuxcnc.org buster base 2.8-rt`
+| Debian Stretch          | `deb https://linuxcnc.org stretch base 2.8-rtpreempt`
+| Debian Wheezy           | `deb https://linuxcnc.org wheezy base 2.8-rt`
+| Ubuntu Precise          | `deb https://linuxcnc.org precise base 2.8-rt`
+| Debian Jessie - preempt | `deb https://linuxcnc.org jessie base 2.8-rtpreempt`
+| Debian Jessie - RTAI    | `deb https://linuxcnc.org jessie base 2.8-rt`
+| Debian Buster - preempt | `deb https://linuxcnc.org buster base 2.8-rtpreempt`
+| Debian Buster - RTAI    | `deb https://linuxcnc.org buster base 2.8-rt`
 |===
 
 image::images/upgrading-to-2.8.png["Setting apt sources",align="center"]
@@ -154,7 +154,7 @@ Debian Wheezy and Stretch both use the Synaptic Package Manager.
 == Updating without Network
 
 To update without a network connection you need to download the .deb then install
-it with dpkg. The .debs can be found in http://linuxcnc.org/dists/ .
+it with dpkg. The .debs can be found in https://linuxcnc.org/dists/ .
 
 You have to drill down from the above link to find the correct deb for your
 installation. Open a <<faq:terminal,terminal>> and type in 'lsb_release -ic'
@@ -182,6 +182,39 @@ package manager with this command:
 ----
 sudo dpkg -i linuxcnc_2.8.0.deb
 ----
+
+
+== Updating Configuration Files for 2.9
+
+=== Stricter handling of pluggable interpreters
+
+If you just run regular G-code and you don't know what a pluggable
+interpreter is, then this section does not affect you.
+
+A seldom-used feature of LinuxCNC is support for pluggable interpreters,
+controlled by the undocumented `[TASK]INTERPRETER` INI setting.
+
+Versions of LinuxCNC before 2.9.0 used to handle an incorrect
+`[TASK]INTERPRETER` setting by automatically falling back to using the
+default G-code interpreter.
+
+As of 2.9.0, an incorrect `[TASK]INTERPRETER` value will cause
+LinuxCNC to refuse to start up.  Fix this condition by deleting the
+`[TASK]INTERPRETER` setting from your INI file, so that LinuxCNC will
+use the default G-code interpreter.
+
+
+=== Canterp
+
+If you just run regular G-code and you don't use the `canterp` pluggable
+interpreter, then this section does not affect you.
+
+In the extremely unlikely event that you are using `canterp`,
+know that the module has moved from `/usr/lib/libcanterp.so` to
+`/usr/lib/linuxcnc/canterp.so`, and the `[TASK]INTERPRETER` setting
+correspondingly needs to change from `libcanterp.so` to `canterp.so`.
+
+
 
 == Updating Configuration Files (for 2.8.x)
 
@@ -695,7 +728,7 @@ more information.
 The number of names= instances was formerly limited to 16.  Now,
 for realtime components (loadrt) the instances are assigned
 dynamically with no built-in limit.  The limit of 16 still
-applies to names= items for userspace (loadusr) components.
+applies to names= items for non-realtime (loadusr) components.
 
 For components using 'personality', the maximum number is now
 settable by a command line option -P|--personalities.
@@ -1111,7 +1144,7 @@ Functions supported include:
   for each joint (and xy, xyz for trivkins machines)
 . 'simulated_home' -- a sim_home_switch HAL component is loaded and connected for each joint.
   The homing conditions are specified by the usual [JOINT_n]HOME_* INI file items.
-. 'use_hal_manualtoolchange' -- the user space hal_manualtoolchange
+. 'use_hal_manualtoolchange' -- the non-realtime hal_manualtoolchange
   component is loaded and connected.
 . 'sim_spindle' -- the sim_spindle component is loaded and connected to
   additional loaded HAL components to simulate the inertia of a rotating
@@ -1175,7 +1208,7 @@ HALFILE = ./example_cmds.hal
 ==== Notes
 
 All components and connections made by LIB:basic_sim.tcl can be viewed
-using halcmd.  The entire HAL configuration (except for userspace
+using halcmd.  The entire HAL configuration (except for non-realtime
 components loaded with loadusr) can be saved to a file using:
 
 ----
@@ -1330,7 +1363,7 @@ to user-fielded Python remap applications that modify tool handling.
 A new optional interface is provided to support management of
 tool data by an external database application.
 
-The ioControl_v2.cc file providing the userspace program iov2 has
+The ioControl_v2.cc file providing the non-realtime program iov2 has
 no maintainter and its use is deprecated -- it may be removed before
 the next release.
 
@@ -1397,10 +1430,10 @@ support of an additional user-specified kinematics type identified
 on the make command line by the userkfuncs environmental
 variable.  (See src/Makefile)
 
-The userspace test program bin/genserkins has been isolated to
+The non-realtime test program bin/genserkins has been isolated to
 a single file (ugenserkins.c) since its original source file
 (genserkins.c) has been refactored for switchkins support.
-The userspace test program has not been actively maintained and
+The non-realtime test program has not been actively maintained and
 its use is deprecated.  The ugenserkins.c file may be removed
 in the future.
 

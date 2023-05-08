@@ -150,6 +150,9 @@ class ScreenOptions(QtWidgets.QWidget, _HalWidgetBase):
     # self.PREFS_
     # come from base class
     def _hal_init(self):
+
+        self.init_about_dialog()
+
         if self.add_message_dialog:
             self.init_message_dialog()
 
@@ -291,8 +294,8 @@ class ScreenOptions(QtWidgets.QWidget, _HalWidgetBase):
     # be able to pass the preference object to the widgets
     def _pref_init(self):
         if self.use_pref_file:
-            # we prefer INI settings
-            if INFO.PREFERENCE_PATH:
+            # we prefer INI settings for screens
+            if INFO.PREFERENCE_PATH and INFO.IS_SCREEN:
                 self.pref_filename = INFO.PREFERENCE_PATH
                 LOG.debug('Switching to Preference File Path from INI: {}'.format(INFO.PREFERENCE_PATH))
             # substitute for keywords
@@ -387,18 +390,22 @@ class ScreenOptions(QtWidgets.QWidget, _HalWidgetBase):
             except:
                 answer = True
             # system shutdown
-            HANDLER = self.QTVCP_INSTANCE_.handler_instance
             if answer == QtWidgets.QMessageBox.DestructiveRole:
                 self.QTVCP_INSTANCE_.settings.sync()
                 self.QTVCP_INSTANCE_.shutdown()
                 self.QTVCP_INSTANCE_.panel_.shutdown()
                 STATUS.shutdown()
-                if 'system_shutdown_request__' in dir(HANDLER):
-                    HANDLER.system_shutdown_request__()
-                else:
-                    from qtvcp.core import Action
-                    ACTION = Action()
-                    ACTION.SHUT_SYSTEM_DOWN_PROMPT()
+                try:
+                    HANDLER = self.QTVCP_INSTANCE_.handler_instance
+                    if 'system_shutdown_request__' in dir(HANDLER):
+                        HANDLER.system_shutdown_request__()
+                        event.accept()
+                        return
+                except:
+                    pass
+                from qtvcp.core import Action
+                ACTION = Action()
+                ACTION.SHUT_SYSTEM_DOWN_PROMPT()
                 event.accept()
             # close linuxcnc
             elif answer:
@@ -505,6 +512,21 @@ class ScreenOptions(QtWidgets.QWidget, _HalWidgetBase):
                 else:
                     layout = QtWidgets.QGridLayout(tw)
                     layout.addWidget(temp, 0, 0)
+
+    def init_about_dialog(self):
+        from qtvcp.widgets.dialog_widget import AboutDialog
+        w = self.QTVCP_INSTANCE_
+        w.aboutDialog_ = AboutDialog(w)
+        w.aboutDialog_.setObjectName('aboutDialog_')
+        info = ACTION.GET_ABOUT_INFO()
+        w.aboutDialog_.setText(info)
+        w.aboutDialog_.hal_init(HAL_NAME='aboutDialog')
+
+    @QtCore.pyqtSlot(bool)
+    @QtCore.pyqtSlot(int)
+    def showAboutDialog(self, value):
+        print(value)
+        self.QTVCP_INSTANCE_.aboutDialog_.showdialog()
 
     def init_tool_dialog(self):
         from qtvcp.widgets.dialog_widget import ToolDialog
