@@ -144,7 +144,7 @@ static void hm2_write(void *void_hm2, long period) {
     hm2_stepgen_prepare_tram_write(hm2, period);
     hm2_sserial_prepare_tram_write(hm2, period);
     hm2_bspi_prepare_tram_write(hm2, period);
-    hm2_ssr_prepare_tram_write(hm2);    
+    hm2_ssr_prepare_tram_write(hm2);
     hm2_outm_prepare_tram_write(hm2);
     //UARTS need to be explicitly handled by an external component
     hm2_tram_write(hm2);
@@ -459,7 +459,7 @@ static int hm2_parse_config_string(hostmot2_t *hm2, char *config_string) {
             hm2->config.num_outms = simple_strtol(token, NULL, 0);
 
         } else if (strncmp(token, "num_oneshots=", 13) == 0) {
-            token += 10;
+            token += 13;
             hm2->config.num_oneshots = simple_strtol(token, NULL, 0);
 
         } else if (strncmp(token, "num_ssrs=", 9) == 0) {
@@ -1061,7 +1061,7 @@ static int hm2_parse_module_descriptors(hostmot2_t *hm2) {
             case HM2_GTAG_ONESHOT:
                 md_accepted = hm2_oneshot_parse_md(hm2, md_index);
                 break;
-  
+
           case HM2_GTAG_RCPWMGEN:
                 md_accepted = hm2_rcpwmgen_parse_md(hm2, md_index);
                 break;
@@ -1811,6 +1811,8 @@ void rtapi_app_exit(void) {
 
 // this pushes our idea of what things are like into the FPGA's poor little mind
 void hm2_force_write(hostmot2_t *hm2) {
+    if (hm2->llio->set_force_enqueue != NULL)
+        hm2->llio->set_force_enqueue(hm2->llio, 1);
     hm2_watchdog_force_write(hm2);
     hm2_ioport_force_write(hm2);
     hm2_encoder_force_write(hm2);
@@ -1830,5 +1832,7 @@ void hm2_force_write(hostmot2_t *hm2) {
     // the IO Port pin directions is set appropriately.
     hm2_ssr_force_write(hm2);
     hm2_outm_force_write(hm2);
+    if (hm2->llio->set_force_enqueue != NULL)
+        hm2->llio->set_force_enqueue(hm2->llio, 0);
 }
 
