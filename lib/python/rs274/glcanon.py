@@ -1429,7 +1429,7 @@ class GlCanonDraw:
                     glBitmap(13, 16, 0, 3, 17, 0, somelimiticon)
                 if (idx == -7 and s.adaptive_feed_enabled): #
                     self.show_icon(idx,13, 16, 0, 3, 17, 0, "adaptivefeed")
-                if (idx == -8 and s.adaptive_feed_enabled): #
+                if (idx == -8 and hal.get_value("axisui.display-spindle-at-speed")): #
                     self.show_icon(idx,13, 16, 0, 3, 17, 0, "atspeedon")
                 if (idx <= -2):
                     ypos -= linespace
