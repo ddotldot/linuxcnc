@@ -89,7 +89,7 @@ class HandlerClass:
                               "sensor_x", "sensor_y", "camera_x", "camera_y",
                               "search_vel", "probe_vel", "max_probe", "eoffset_count"]
         self.onoff_list = ["frame_program", "frame_tool", "frame_dro", "frame_override", "frame_status"]
-        self.auto_list = ["chk_eoffsets", "cmb_gcode_history"]
+        self.auto_list = ["chk_eoffsets", "cmb_gcode_history","lineEdit_eoffset_count"]
         self.axis_a_list = ["label_axis_a", "dro_axis_a", "action_zero_a", "axistoolbutton_a",
                             "dro_button_stack_a", "widget_jog_angular", "widget_increments_angular",
                             "a_plus_jogbutton", "a_minus_jogbutton"]
@@ -170,6 +170,7 @@ class HandlerClass:
     # set validators for lineEdit widgets
         for val in self.lineedit_list:
             self.w['lineEdit_' + val].setValidator(self.valid)
+        self.w.lineEdit_eoffset_count.setValidator(QtGui.QIntValidator(0,100))
     # check for default setup html file
         try:
             # web view widget for SETUP page
@@ -260,7 +261,9 @@ class HandlerClass:
         # external offset control pins
         QHAL.newpin("eoffset-enable", QHAL.HAL_BIT, QHAL.HAL_OUT)
         QHAL.newpin("eoffset-clear", QHAL.HAL_BIT, QHAL.HAL_OUT)
-        QHAL.newpin("eoffset-count", QHAL.HAL_S32, QHAL.HAL_OUT)
+        self.h['eoffset-clear'] = True
+        QHAL.newpin("eoffset-spindle-count", QHAL.HAL_S32, QHAL.HAL_OUT)
+        # total external offset
         pin = QHAL.newpin("eoffset-value", QHAL.HAL_FLOAT, QHAL.HAL_IN)
 
     def init_preferences(self):
@@ -492,7 +495,9 @@ class HandlerClass:
         elif sensor_code and name == 'MESSAGE' and rtn is True:
             self.touchoff('sensor')
         elif wait_code and name == 'MESSAGE':
-            self.h['eoffset-clear'] = False
+            self.h['eoffset-spindle-count'] = 0
+            self.h['eoffset-clear'] = True
+            self.add_status('Spindle lowered')
         elif unhome_code and name == 'MESSAGE' and rtn is True:
             ACTION.SET_MACHINE_UNHOMED(-1)
         elif overwrite and name == 'MESSAGE':
@@ -676,14 +681,15 @@ class HandlerClass:
         self.w.action_step.setEnabled(not state)
         if state:
         # set external offsets to lift spindle
+            self.h['eoffset-clear'] = False
             self.h['eoffset-enable'] = self.w.chk_eoffsets.isChecked()
-            fval = float(self.w.lineEdit_eoffset_count.text())
-            self.h['eoffset-count'] = int(fval)
+            fval = int(self.w.lineEdit_eoffset_count.text())
+            self.h['eoffset-spindle-count'] = int(fval)
             self.h['spindle-inhibit'] = True
+            self.add_status("Spindle stopped and raised {}".format(fval))
         else:
-            self.h['eoffset-count'] = 0
-            self.h['eoffset-clear'] = True
             self.h['spindle-inhibit'] = False
+            self.add_status('Spindle re-started')
         # instantiate warning box
             info = "Wait for spindle at speed signal before resuming"
             mess = {'NAME':'MESSAGE', 'ICON':'WARNING', 'ID':'_wait_resume_', 'MESSAGE':'CAUTION', 'MORE':info, 'TYPE':'OK'}
@@ -899,6 +905,27 @@ class HandlerClass:
     def btn_zoomout_clicked(self):
         self.w.gcode_viewer.editor.zoomOut()
 
+    def btn_spindle_z_up_clicked(self):
+        fval = int(self.w.lineEdit_eoffset_count.text())
+        if INFO.MACHINE_IS_METRIC:
+            fval += 5
+        else:
+            fval += 1
+        self.w.lineEdit_eoffset_count.setText(str(fval))
+        if self.h['eoffset-clear'] != True:
+            self.h['eoffset-spindle-count'] = int(fval)
+    def btn_spindle_z_down_clicked(self):
+        fval = int(self.w.lineEdit_eoffset_count.text())
+        if INFO.MACHINE_IS_METRIC:
+            fval -= 5
+        else:
+            fval -= 1
+        if fval <0: fval = 0
+        self.w.lineEdit_eoffset_count.setText(str(fval))
+        if self.h['eoffset-clear'] != True:
+            self.h['eoffset-spindle-count'] = int(fval)
+
+
     #####################
     # GENERAL FUNCTIONS #
     #####################
@@ -1000,7 +1027,7 @@ class HandlerClass:
         retval = msg.exec_()
 
     def disable_spindle_pause(self):
-        self.h['eoffset-count'] = 0
+        self.h['eoffset-spindle-count'] = 0
         self.h['spindle-inhibit'] = False
         if self.w.btn_spindle_pause.isChecked():
             self.w.btn_spindle_pause.setChecked(False)
@@ -1069,7 +1096,7 @@ class HandlerClass:
         else:
             self.add_status("Machine OFF")
         self.w.btn_spindle_pause.setChecked(False)
-        self.h['eoffset-count'] = 0
+        self.h['eoffset-spindle-count'] = 0
         for widget in self.onoff_list:
             self.w[widget].setEnabled(state)
 
@@ -1142,12 +1169,17 @@ class HandlerClass:
 
     def endcolor(self):
         self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self.set_style_default)
+        self.timer.timeout.connect(self.clear_status_bar)
         self.timer.start(self.statusbar_reset_time)
+
+    def clear_status_bar(self):
+        self.set_style_default()
+        self.w.lineEdit_statusbar.setText('')
 
     # change Status bar text color
     def set_style_default(self):
         self.w.lineEdit_statusbar.setStyleSheet("background-color: rgb(252, 252, 252);color: rgb(0,0,0)")  #default white
+
     def set_style_warning(self):
         self.w.lineEdit_statusbar.setStyleSheet("background-color: rgb(242, 246, 103);color: rgb(0,0,0)")  #yellow
         self.endcolor()
@@ -1169,12 +1201,12 @@ class HandlerClass:
                     TAB_FILE: (TAB_MAIN,PAGE_GCODE,False,SHOW_DRO),
                     TAB_OFFSETS: (TAB_MAIN,PAGE_GCODE,False,SHOW_DRO),
                     TAB_TOOL: (TAB_MAIN,PAGE_GCODE,False,SHOW_DRO),
-                    TAB_STATUS: (TAB_MAIN,PAGE_GCODE,False,SHOW_DRO),
+                    TAB_STATUS: (requestedIndex,PAGE_GCODE,False,SHOW_DRO),
                     TAB_PROBE: (TAB_MAIN,PAGE_GCODE,False,SHOW_DRO),
                     TAB_CAMERA: (requestedIndex,PAGE_UNCHANGED,False,SHOW_DRO),
                     TAB_GCODES: (requestedIndex,PAGE_UNCHANGED,False,SHOW_DRO),
                     TAB_SETUP: (requestedIndex,PAGE_UNCHANGED,False,SHOW_DRO),
-                    TAB_SETTINGS: (TAB_MAIN,PAGE_GCODE,False,SHOW_DRO),
+                    TAB_SETTINGS: (requestedIndex,PAGE_GCODE,False,SHOW_DRO),
                     TAB_UTILITIES: (TAB_MAIN,PAGE_GCODE,False,SHOW_DRO),
                     TAB_USER: (requestedIndex,PAGE_UNCHANGED,IGNORE,IGNORE) }
         else:
