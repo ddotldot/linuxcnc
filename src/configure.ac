@@ -30,7 +30,7 @@ if test "$srcdir" != "."; then
     AC_MSG_ERROR([Building outside of srcdir is not supported])
 fi
 
-AC_PROG_CXX
+AC_PROG_CXX([$RTSCC c++ clang++])
 AC_PROG_INSTALL
 
 m4_include([m4/ax_require_defined.m4])
@@ -407,6 +407,14 @@ if test -z "$CC"; then
 elif ! test `$CC -dumpversion | cut -d '.' -f 1` -gt 2 ; then
   AC_MSG_ERROR([Compilers older than gcc 3.x are no longer supported])
 fi
+
+# Set flags for C and C++ if supported
+for commonflag in -Wno-stringop-truncation ; do
+  if echo "int main() { return 0;}" | $CC -Werror $commonflag -E - > /dev/null; then
+    CFLAGS="$CFLAGS $flag"
+    CXXFLAGS="$CXXFLAGS $flag"
+  fi
+done
 
 AC_MSG_CHECKING([for usability of linux/hidraw.h])
 AC_LINK_IFELSE([AC_LANG_PROGRAM([[
@@ -993,7 +1001,7 @@ AC_SUBST(YAPPS)
 ##############################################################################
 # Subsection 3.7 - check for programs needed to build documentation          #
 #                                                                            #
-# Check for LyX and other programs we need to build and install docs.        #
+# Check for programs we need to build and install docs.                      #
 # (Optional, if not present, just don't build the docs.)                     #
 ##############################################################################
 
@@ -1061,7 +1069,7 @@ if ( test "$BUILD_DOCS" = "yes" ) ; then
 :ascii-ids:
 
 ....
-umläut nuß
+Matúš hat Geläut am Fuß
 ....
 EOF
     if $A2X --dblatex-opts "-P latex.encoding=utf8" $temp_asciidoc > /dev/null 2>&1;
@@ -1547,7 +1555,8 @@ GPL-2 only) and Readline version 6 and greater (GPL-3 or later).])
             AC_MSG_ERROR(
 [To configure LinuxCNC in this way, you must
 invoke configure with "--enable-non-distributable=yes".  Note that on
-Debian-based systems, you may be able to use libreadline-gplv2-dev instead.])
+Debian-based systems, you may be able to use libeditreadline-dev or
+libreadline-gplv2-dev instead of libreadline-dev.])
         fi
 ])
 

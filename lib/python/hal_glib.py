@@ -1091,7 +1091,7 @@ class _GStat(GObject.GObject):
         self.stat.poll()
         return self.stat.spindle[num]['enabled']
 
-    def get_spindle_speed(self, num):
+    def get_spindle_speed(self, num=0):
         self.stat.poll()
         return self.stat.spindle[num]['speed']
 
@@ -1194,6 +1194,10 @@ class _GStat(GObject.GObject):
         j_or_a = axisnum
         if jjogmode == JOGJOINT: j_or_a = self.jnum_for_axisnum(axisnum)
         return jjogmode,j_or_a
+
+    def get_probed_position(self):
+        self.stat.poll()
+        return list(self.stat.probed_position)
 
     def get_probed_position_with_offsets(self) :
         self.stat.poll()
