@@ -65,12 +65,12 @@ for f in names:
     b = os.path.splitext(os.path.basename(f))[0]
     # The module definition is #included as mesa_modbus.h
     m = open(os.path.join(tempdir, "Makefile"), "w")
-    print("obj-m += %s.o" % b,file=m)
-    print("%s-objs:=mesa_modbus.o" % b,file=m)
-    print("include %s" % find_modinc(), file=m)
-    print("EXTRA_CFLAGS += -I%s" % tempdir, file=m)
-    print("EXTRA_CFLAGS += -DMODFILE=%s" % os.path.abspath(f), file=m)
-    print("EXTRA_CFLAGS += -D_COMP_NAME_=%s" % b, file=m)
+    print >>m, "obj-m += %s.o" % b
+    print >>m, "%s-objs:=mesa_modbus.o" % b
+    print >>m, "include %s" % find_modinc()
+    print >>m, "EXTRA_CFLAGS += -I%s" % tempdir
+    print >>m, "EXTRA_CFLAGS += -DMODFILE=%s" % os.path.abspath(f)
+    print >>m, "EXTRA_CFLAGS += -D_COMP_NAME_=%s" % b
     m.close()
     os.system("touch mesa_modbus.c") # Force a recompile
     result = os.system("cd %s && make -S modules install" % tempdir)
