@@ -2200,9 +2200,11 @@ class TclCommands(nf.TclCommands):
         s.poll()
         if s.task_state == linuxcnc.STATE_ESTOP_RESET:
             c.state(linuxcnc.STATE_ON)
-            runHoming=prompt_areyousure(_("Homing request"),_("After turning on the machine power,\nYou need find axes origins.\n\n            Run homing process?"))
-            if runHoming:
-                commands.home_all_joints()
+            homing_prompt = bool(inifile.find("DISPLAY", "HOMING_PROMPT"))
+            if homing_prompt:
+                run_homing = prompt_areyousure(_("Homing request"),_("After turning on the machine power,\nYou need find axes origins.\n\n            Run homing process?"))
+                if run_homing:
+                    commands.home_all_joints()
         else:
             c.state(linuxcnc.STATE_OFF)
 
