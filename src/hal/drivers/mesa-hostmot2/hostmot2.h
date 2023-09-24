@@ -284,6 +284,7 @@ typedef struct {
 
         struct {
             hal_float_t scale;
+			hal_u32_t index_offset;
             hal_bit_t index_invert;
             hal_bit_t index_mask;
             hal_bit_t index_mask_invert;
@@ -305,6 +306,7 @@ typedef struct {
     hal_bit_t prev_quadrature_error_enable; // shadow for detecting rising edge on the quadrature_error_enable
     hal_bit_t reset_quadrature_error; // bit to indicate if we want to reset the quadrature error
 
+    rtapi_u32 written_index_offset;
 
     // these two are the datapoint last time we moved (only valid if state == HM2_ENCODER_MOVING)
     rtapi_s32 prev_event_rawcounts;
@@ -350,6 +352,9 @@ typedef struct {
     rtapi_u32 latch_control_addr;
     rtapi_u32 *control_reg;
     rtapi_u32 *read_control_reg;
+
+    rtapi_u32 index_offset_addr;
+    rtapi_u32 *index_offset_reg;
 
     rtapi_u32 timestamp_div_addr;
     rtapi_u32 timestamp_div_reg;  // one register for the whole Function
